@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 
-for i in {2020..2025}
+for i in {2023..2025}
 do
   promtool query range \
     --format=json \
