@@ -6,9 +6,9 @@ echo '"name","period","timestamp_range","total"'
 FILTER=$(cat <<END
 .[0].values[] | [
   # convert to value used for timestamp_range
-  (.[0] | tostring + "000000000"),
+  (.[0] | floor | tostring + "000000000"),
   # add an hour
-  ((.[0] + 3600) | tostring + "000000000"),
+  ((.[0] + 3600) | floor | tostring + "000000000"),
   (.[1] | tonumber * 1000000000 | floor)
 ] | [
   (
