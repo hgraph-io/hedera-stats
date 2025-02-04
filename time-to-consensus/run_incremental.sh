@@ -4,7 +4,7 @@
 set -o allexport && source .env && set +o allexport
 
 # check if environment variables exist
-VARIABLES=("PROMETHEUS_ENDPOINT")
+VARIABLES=("PROMETHEUS_ENDPOINT" "POSTGRES_CONNECTION_STRING")
 for VAR in "${VARIABLES[@]}"; do
     if [ -z "${!VAR+x}" ]; then
         echo "Environment variable $VAR does not exist."
