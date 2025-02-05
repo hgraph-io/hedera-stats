@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
 
-# echo "not implemented yet"
-# TODO: is the timestampe range off by an hour?
-psql $POSTGRES_CONNECTION_STRING -c "\copy ecosystem.metric(name, period, timestamp_range, total) FROM './.raw/output.csv' WITH (FORMAT csv, HEADER true);"
+CSV_FILE=${1:-./.raw/output.csv}
+
+psql $POSTGRES_CONNECTION_STRING -c "\copy ecosystem.metric(name, period, timestamp_range, total) FROM '$CSV_FILE' WITH (FORMAT csv, HEADER true);"
