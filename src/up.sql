@@ -16,12 +16,6 @@ create table if not exists ecosystem.metric (
     unique (name, period, timestamp_range)
 );
 
-create table if not exists ecosystem.metric_description (
-    name text primary key not null,
-    description text,
-    methodology text
-);
-
 -- return type for metric calculation functions
 do $$ begin
   create type ecosystem.metric_total as (
