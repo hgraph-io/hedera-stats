@@ -11,15 +11,14 @@ create or replace function ecosystem.dashboard_active_accounts(
 )
 returns decimal as $$
 declare total decimal;
+previous_period_start bigint = (NOW() - _interval * 2)::timestamp9::bigint;
+current_period_start bigint = (NOW() - _interval )::timestamp9::bigint;
 begin
+  -- SET max_parallel_workers_per_gather = 16;
+
   -- get percent change
   if change then
-    WITH time_bounds AS (
-        SELECT
-            (NOW() - _interval * 2)::timestamp9::bigint AS previous_period_start,
-            (NOW() - _interval)::timestamp9::bigint AS current_period_start
-    ),
-    previous_period AS (
+   with previous_period AS (
       select count(*) as total from (
         SELECT distinct e.id
         FROM entity e
@@ -28,8 +27,7 @@ begin
           ON t.payer_account_id = e.id
           AND e.type = 'ACCOUNT'
           and t.result = 22
-        JOIN time_bounds tb ON
-            t.consensus_timestamp BETWEEN tb.previous_period_start AND tb.current_period_start
+          and t.consensus_timestamp BETWEEN previous_period_start AND current_period_start
       )
     ),
     current_period AS (
@@ -41,8 +39,7 @@ begin
           ON t.payer_account_id = e.id
           AND e.type = 'ACCOUNT'
           and t.result = 22 -- Success result
-        JOIN time_bounds tb ON
-            t.consensus_timestamp BETWEEN tb.previous_period_start AND tb.current_period_start
+          and t.consensus_timestamp BETWEEN previous_period_start AND current_period_start
       )
     )
     SELECT
@@ -57,8 +54,8 @@ begin
       ON t.payer_account_id = e.id
         AND e.type = 'ACCOUNT'
         and t.result = 22
-        and t.consensus_timestamp >= (now() - _interval::interval)::timestamp9::bigint;
-    )
+        and t.consensus_timestamp >= (now() - _interval::interval)::timestamp9::bigint
+    );
   end if;
   return total;
 end;
