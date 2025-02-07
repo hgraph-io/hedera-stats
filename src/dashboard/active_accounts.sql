@@ -20,40 +20,45 @@ begin
             (NOW() - _interval)::timestamp9::bigint AS current_period_start
     ),
     previous_period AS (
-        SELECT COUNT(e.id) AS total
+      select count(*) as total from (
+        SELECT distinct e.id
         FROM entity e
         INNER JOIN
-          (select distinct payer_account_id, result, consensus_timestamp from transaction) t
+          (select payer_account_id, result, consensus_timestamp from transaction) t
           ON t.payer_account_id = e.id
           AND e.type = 'ACCOUNT'
           and t.result = 22
         JOIN time_bounds tb ON
             t.consensus_timestamp BETWEEN tb.previous_period_start AND tb.current_period_start
+      )
     ),
     current_period AS (
-        SELECT COUNT(e.id) AS total
+      select count(*) as total from (
+        SELECT distinct e.id
         FROM entity e
         INNER JOIN
-          (select distinct payer_account_id, result, consensus_timestamp from transaction) t
+          (select payer_account_id, result, consensus_timestamp from transaction) t
           ON t.payer_account_id = e.id
           AND e.type = 'ACCOUNT'
           and t.result = 22 -- Success result
         JOIN time_bounds tb ON
             t.consensus_timestamp BETWEEN tb.previous_period_start AND tb.current_period_start
+      )
     )
     SELECT
         ((current_period.total::DECIMAL / NULLIF(previous_period.total, 0)) - 1) * 100 into total
     FROM current_period, previous_period;
-  --return total
   else
-    select count(e.id) into total
-    FROM entity e
-    INNER JOIN
-      (select distinct payer_account_id, result, consensus_timestamp from transaction) t
-    ON t.payer_account_id = e.id
-      AND e.type = 'ACCOUNT'
-      and t.result = 22
-      and t.consensus_timestamp >= (now() - _interval::interval)::timestamp9::bigint;
+    select count(*) into total from (
+      select distinct e.id
+      FROM entity e
+      INNER JOIN
+        (select payer_account_id, result, consensus_timestamp from transaction) t
+      ON t.payer_account_id = e.id
+        AND e.type = 'ACCOUNT'
+        and t.result = 22
+        and t.consensus_timestamp >= (now() - _interval::interval)::timestamp9::bigint;
+    )
   end if;
   return total;
 end;
