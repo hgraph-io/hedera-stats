@@ -23,5 +23,8 @@ for CMD in "${COMMANDS[@]}"; do
     fi
 done
 
-./etl/extract.sh | tee .raw/data.json | ./etl/transform.sh | tee .raw/output.csv \
-  && ./etl/load.sh ./.raw/output.csv
+DIR="$(dirname "$(realpath "$0")")"
+echo $DIR
+
+$DIR/etl/extract.sh | tee $DIR/.raw/data.json | $DIR/etl/transform.sh | tee $DIR/.raw/output.csv \
+  && $DIR/etl/load.sh

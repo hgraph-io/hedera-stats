@@ -19,7 +19,7 @@ if [ "$LATEST_END_SEC" -eq 0 ]; then
 # Use the most recent datapoint (helpful to be run as a cron job)
 else
   # Take the END of the last interval as the start of the next query
-  START_TIME=$(date -r "$LATEST_END_SEC" -u +"%Y-%m-%dT%H:00:00Z")
+  START_TIME=$(date --date="@$LATEST_END_SEC" -u +"%Y-%m-%dT%H:00:00Z")
 fi
 
 END_TIME=$(date -u +"%Y-%m-%dT%H:00:00Z")
