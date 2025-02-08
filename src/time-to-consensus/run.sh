@@ -27,4 +27,4 @@ DIR="$(dirname "$(realpath "$0")")"
 echo $DIR
 
 $DIR/etl/extract.sh | tee $DIR/.raw/data.json | $DIR/etl/transform.sh | tee $DIR/.raw/output.csv \
-  && $DIR/etl/load.sh
+  | $DIR/etl/load.sh
