@@ -12,7 +12,7 @@ Metrics:
 ### 1. Install prometheus to use promtool cli
 
 ```bash
-curl -o https://github.com/prometheus/prometheus/releases/download/v3.1.0/prometheus-3.1.0.linux-amd64.tar.gz
+curl -L -O https://github.com/prometheus/prometheus/releases/download/v3.1.0/prometheus-3.1.0.linux-amd64.tar.gz
 tar -xvf prometheus-3.1.0.linux-amd64.tar.gz
 # one way to add the tool to the PATH
 cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
