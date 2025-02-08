@@ -22,10 +22,5 @@ cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 
 ```bash
 crontab -e
-0 * * * * bash /path/to/hedera-stats/time-to-consensus/run.sh >> ./cron.log 2>&1
-```
-
-### 3. Add the following line to run every hour
-
-```bash
+1 * * * * cd /path/to/hedera-stats/src/time-to-consensus && bash ./run.sh >> ./.raw/cron.log 2>&1
 ```
