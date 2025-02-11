@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
 
-CSV_FILE=${1:-./.raw/output.csv}
+LOAD_DIR="$(dirname "$(realpath "$0")")"
 
-psql $POSTGRES_CONNECTION_STRING -c "\copy ecosystem.metric(name, period, timestamp_range, total) FROM '$CSV_FILE' WITH (FORMAT csv, HEADER true);"
+psql $POSTGRES_CONNECTION_STRING -c "$(cat $LOAD_DIR/load.sql)"

@@ -7,14 +7,20 @@ Hedera network.
 ## Incremental update setup
 
 Metrics:
-- avg_time_to_consensus
+- avg\_time\_to\_consensus
 
-### 1. Open the crontab editor
+### 1. Install prometheus to use promtool cli
+
 ```bash
-crontab -e
+curl -L -O https://github.com/prometheus/prometheus/releases/download/v3.1.0/prometheus-3.1.0.linux-amd64.tar.gz
+tar -xvf prometheus-3.1.0.linux-amd64.tar.gz
+# one way to add the tool to the PATH
+cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 ```
 
-### 2. Add the following line to run every hour
+### 2. Add a cron job
+
 ```bash
-0 * * * * cd /path/to/hedera-stats/time-to-consensus && ./run_incremental.sh >> ./cron.log 2>&1
+crontab -e
+1 * * * * cd /path/to/hedera-stats/src/time-to-consensus && bash ./run.sh >> ./.raw/cron.log 2>&1
 ```
