@@ -28,11 +28,22 @@ select cron.schedule_in_database(
     '<database_user>'
 );
 
+-- daily job
 select cron.schedule_in_database(
     'call ecosystem.load_stablecoin_marketcap()',
     -- daily after midnight UTC
     '3 * * * *',
     'call ecosystem.load_stablecoin_marketcap()',
+    '<database_name>',
+    '<database_user>'
+);
+
+-- daily job
+select cron.schedule_in_database(
+    'refresh materialized view ecosystem.hashgraph_dashboard',
+    -- daily after midnight UTC
+    '10 * * * *',
+    'refresh materialized view ecosystem.hashgraph_dashboard',
     '<database_name>',
     '<database_user>'
 );
