@@ -58,17 +58,17 @@ create materialized view ecosystem.hashgraph_dashboard as (
         select accounts_90 - developers_90 as retail_90 from accounts, developers
       ), (
         select
-          (accounts_7 - developers_7)::decimal / (accounts_7_previous - developers_7_previous)
+          (accounts_7 - developers_7)::decimal - (accounts_7_previous - developers_7_previous)
           / (accounts_7_previous - developers_7_previous) * 100 as retail_7_growth
         from accounts, developers
       ), (
         select
-          (accounts_30 - developers_30)::decimal / (accounts_30_previous - developers_30_previous)
+          (accounts_30 - developers_30)::decimal - (accounts_30_previous - developers_30_previous)
           / (accounts_30_previous - developers_30_previous) * 100 as retail_30_growth
         from accounts, developers
       ), (
         select
-          (accounts_90 - developers_90)::decimal / (accounts_90_previous - developers_90_previous)
+          (accounts_90 - developers_90)::decimal - (accounts_90_previous - developers_90_previous)
           / (accounts_90_previous - developers_90_previous) * 100 as retail_90_growth
         from accounts, developers
       )
