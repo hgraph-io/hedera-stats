@@ -55,23 +55,20 @@ create materialized view ecosystem.hashgraph_dashboard as (
       )
     ), retail as (
       select * from (
-        select
-          (accounts_7 - developers_7) / (accounts_7_previous - developers_7_previous)
-        as retail_90
-        from accounts, developers
+        select accounts_90 - developers_90 as retail_90 from accounts, developers
       ), (
         select
-          (accounts_7 - developers_7) / (accounts_7_previous - developers_7_previous)
+          (accounts_7 - developers_7)::decimal / (accounts_7_previous - developers_7_previous)
           / (accounts_7_previous - developers_7_previous) * 100 as retail_7_growth
         from accounts, developers
       ), (
         select
-          (accounts_30 - developers_30) / (accounts_30_previous - developers_30_previous)
+          (accounts_30 - developers_30)::decimal / (accounts_30_previous - developers_30_previous)
           / (accounts_30_previous - developers_30_previous) * 100 as retail_30_growth
         from accounts, developers
       ), (
         select
-          (accounts_90 - developers_90) / (accounts_90_previous - developers_90_previous)
+          (accounts_90 - developers_90)::decimal / (accounts_90_previous - developers_90_previous)
           / (accounts_90_previous - developers_90_previous) * 100 as retail_90_growth
         from accounts, developers
       )
@@ -127,5 +124,7 @@ create materialized view ecosystem.hashgraph_dashboard as (
         from ecosystem.dashboard_revenue('90 days')
       )
     )
-    select * from accounts, developers, retail, contracts, revenue
+    select now() as updated_at, * from accounts, developers, retail, contracts, revenue
 );
+
+create unique index on ecosystem.hashgraph_dashboard (updated_at);

@@ -25,7 +25,7 @@ begin
       and t.result = 22 -- Success result
   );
 
-  select count(*) into previous_total from (
+  select count(*) into total from (
     select distinct payer_account_id
     from transaction t
     where t.consensus_timestamp >= current_period_start
