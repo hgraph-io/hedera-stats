@@ -1,7 +1,6 @@
 -----------------------
 -- Total active accounts
 -----------------------
-drop function ecosystem.dashboard_active_accounts;
 create or replace function ecosystem.dashboard_active_accounts(
     _interval interval
 )
