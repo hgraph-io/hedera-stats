@@ -5,46 +5,47 @@
 -- select ecosystem.dashboard_active_developer_accounts('30 days', true);
 -- select ecosystem.dashboard_active_developer_accounts('90 days', true);
 -----------------------
-create or replace function ecosystem.dashboard_active_developer_accounts(_interval interval, change boolean = false)
+create or replace function ecosystem.dashboard_active_developer_accounts(
+    _interval interval, change boolean = false
+)
 returns decimal as $$
+
 declare total decimal;
+previous_period_start bigint = (NOW() - _interval * 2)::timestamp9::bigint;
+current_period_start bigint = (NOW() - _interval )::timestamp9::bigint;
+
 begin
   -- get percent change
   if change then
-    WITH time_bounds AS (
-        SELECT
-            (NOW() - _interval * 2)::timestamp9::bigint AS previous_period_start,
-            (NOW() - _interval)::timestamp9::bigint AS current_period_start
-    ),
-    previous_period AS (
-        SELECT COUNT(distinct t.payer_account_id) AS total
+    with previous_period AS (
+      select count(*) as total from (
+        SELECT distinct payer_account_id AS total
         FROM transaction t
-        JOIN entity e ON t.payer_account_id = e.id AND e.type = 'ACCOUNT'
-        JOIN time_bounds tb ON
-            t.consensus_timestamp BETWEEN tb.previous_period_start AND tb.current_period_start
-        WHERE t.result = 22 -- Success result
-        AND t.type IN (8, 9, 24, 25, 29, 36, 37, 58) -- Smart Contract Create / Update Transaction, Token Create / Update / Mint (FT & NFT) Transaction / TokenAirdrop, Create / Update Topic Transaction
+        where t.consensus_timestamp BETWEEN previous_period_start AND current_period_start
+          AND t.type IN (8, 9, 24, 25, 29, 36, 37, 58) -- Smart Contract Create / Update Transaction, Token Create / Update / Mint (FT & NFT) Transaction / TokenAirdrop, Create / Update Topic Transaction
+          and t.result = 22 -- Success result
+      )
     ),
     current_period AS (
-        SELECT COUNT(distinct t.payer_account_id) AS total
+      select count(*) as total from (
+        SELECT distinct payer_account_id AS total
         FROM transaction t
-        JOIN entity e ON t.payer_account_id = e.id AND e.type = 'ACCOUNT'
-        JOIN time_bounds tb ON
-            t.consensus_timestamp >= tb.current_period_start
-        WHERE t.result = 22 -- Success result
-        AND t.type IN (8, 9, 24, 25, 29, 36, 37, 58) -- Smart Contract Create / Update Transaction, Token Create / Update / Mint (FT & NFT) Transaction / TokenAirdrop, Create / Update Topic Transaction
+        where t.consensus_timestamp >= current_period_start
+          AND t.type IN (8, 9, 24, 25, 29, 36, 37, 58) -- Smart Contract Create / Update Transaction, Token Create / Update / Mint (FT & NFT) Transaction / TokenAirdrop, Create / Update Topic Transaction
+          and t.result = 22 -- Success result
+      )
     )
     SELECT
         ((current_period.total::DECIMAL / NULLIF(previous_period.total, 0)) - 1) * 100 into total
     FROM current_period, previous_period;
-  --return total
   else
-    select count(distinct e.id) into total
-    from transaction as t
-    inner join entity as e on t.payer_account_id = e.id
-    where t.result = 22 and e.type = 'ACCOUNT'
-      and t.consensus_timestamp >= (now() - _interval::interval)::timestamp9::bigint
-      and t.type IN (8, 9, 24, 25, 29, 36, 37, 58); -- Smart Contract Create / Update Transaction, Token Create / Update / Mint (FT & NFT) Transaction / TokenAirdrop, Create / Update Topic Transaction
+    select count(*) from (
+      select distinct payer_account_id into total
+      from transaction as t
+      where t.consensus_timestamp >= current_period_start
+        and t.type IN (8, 9, 24, 25, 29, 36, 37, 58) -- Smart Contract Create / Update Transaction, Token Create / Update / Mint (FT & NFT) Transaction / TokenAirdrop, Create / Update Topic Transaction
+        and t.result = 22 -- Success result
+    );
   end if;
   return total;
 end;

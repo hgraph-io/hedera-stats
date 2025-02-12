@@ -10,36 +10,38 @@ create or replace function ecosystem.dashboard_active_contracts(
 )
 returns decimal as $$
 declare total decimal;
+previous_period_start bigint = (NOW() - _interval * 2)::timestamp9::bigint;
+current_period_start bigint = (NOW() - _interval )::timestamp9::bigint;
 begin
   -- get percent change
   if change then
-    WITH time_bounds AS (
-        SELECT
-            (NOW() - _interval * 2)::timestamp9::bigint AS previous_period_start,
-            (NOW() - _interval)::timestamp9::bigint AS current_period_start
-    ),
-    previous_period AS (
-      select count(distinct cr.contract_id) as total
-      from contract_result cr
-      JOIN time_bounds tb ON
-          cr.consensus_timestamp BETWEEN tb.previous_period_start AND tb.current_period_start
-      and cr.transaction_result = 22 -- success result
+    with previous_period AS (
+      select count(*) as total from (
+        select distinct cr.contract_id
+        from contract_result cr
+        where  cr.consensus_timestamp
+          BETWEEN previous_period_start AND current_period_start
+          and cr.transaction_result = 22 -- success result
+      )
     ),
     current_period AS (
-      select count(distinct cr.contract_id) as total
-      from contract_result cr
-      JOIN time_bounds tb ON
-          cr.consensus_timestamp >= tb.current_period_start
-      and cr.transaction_result = 22 -- success result
+      select count(*) as total from (
+        select distinct cr.contract_id
+        from contract_result cr
+        where cr.consensus_timestamp >= current_period_start
+        and cr.transaction_result = 22 -- success result
+      )
     )
     SELECT
         ((current_period.total::DECIMAL / NULLIF(previous_period.total, 0)) - 1) * 100 into total
     FROM current_period, previous_period;
   else
-    select count(distinct cr.contract_id) into total
-    from contract_result cr
-    where cr.consensus_timestamp >= (NOW() - _interval)::timestamp9::bigint
-    and cr.transaction_result = 22; -- success result
+    select count(*) from (
+      select distinct cr.contract_id into total
+      from contract_result cr
+      where cr.consensus_timestamp >= current_period_start
+      and cr.transaction_result = 22
+    );
   end if;
   return total;
 end;
