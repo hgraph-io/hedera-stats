@@ -21,9 +21,18 @@ select cron.schedule_in_database(
 -- daily job
 select cron.schedule_in_database(
     'call ecosystem.load_network_tvl()',
-    -- daily at midnight
-    '0 0 * * *',
+    -- daily after midnight UTC
+    '2 * * * *',
     'call ecosystem.load_network_tvl();',
+    '<database_name>',
+    '<database_user>'
+);
+
+select cron.schedule_in_database(
+    'call ecosystem.load_stablecoin_marketcap()',
+    -- daily after midnight UTC
+    '3 * * * *',
+    'call ecosystem.load_stablecoin_marketcap()',
     '<database_name>',
     '<database_user>'
 );

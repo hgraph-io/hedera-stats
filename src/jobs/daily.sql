@@ -19,8 +19,7 @@ declare
         'nfts_transferred',
         'nft_sales_volume',
         -- network_tvl and stablecoin_marketcap raw data are updated in DefiLlama every day at midnight
-        -- 'network_tvl',
-        'stablecoin_marketcap',
+        -- 'stablecoin_marketcap',
         'avg_usd_conversion'
     ];
     metric text;
