@@ -4,10 +4,8 @@ select cron.schedule_in_database(
     -- hourly at minute 3
     '3 * * * *',
     'call ecosystem.load_hourly_metrics();',
-    'hedera_testnet',
-    'hedera_testnet_owner'
-    -- 'hedera_mainnet',
-    -- 'hedera_mainnet_owner'
+    '<database_name>',
+    '<database_user>'
 );
 
 -- daily job
@@ -16,8 +14,16 @@ select cron.schedule_in_database(
     -- daily at midnight
     '0 0 * * *',
     'call ecosystem.load_metrics();',
-    'hedera_testnet',
-    'hedera_testnet_owner'
-    /* 'hedera_mainnet', */
-    /* 'hedera_mainnet_owner' */
+    '<database_name>',
+    '<database_user>'
+);
+
+-- daily job
+select cron.schedule_in_database(
+    'call ecosystem.load_network_tvl()',
+    -- daily at midnight
+    '0 0 * * *',
+    'call ecosystem.load_network_tvl();',
+    '<database_name>',
+    '<database_user>'
 );
