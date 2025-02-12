@@ -14,13 +14,11 @@ begin
       select sum(charged_tx_fee) as total
       from transaction
       where consensus_timestamp between previous_period_start and current_period_start
-      and result = 22
     ),
     current_period AS (
       select sum(charged_tx_fee) as total
       from transaction
       where consensus_timestamp >= current_period_start
-      and result = 22
     )
     select
         ((current_period.total::DECIMAL / nullif(previous_period.total, 0)) - 1) * 100
@@ -32,7 +30,6 @@ begin
       select sum(charged_tx_fee) into total
       from transaction
       where consensus_timestamp >= current_period_start
-      and result = 22;
   end if;
 
   -- total or percentage change
