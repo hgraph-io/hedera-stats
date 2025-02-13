@@ -16,17 +16,18 @@ with accounts_transactions as (
     and t.result = 22 -- Success result
     and t.consensus_timestamp between start_timestamp and end_timestamp
 ),
+excluded_accounts as (
+    select payer_account_id
+    from accounts_transactions
+    where type in (8, 9, 29, 36, 37, 58, 24, 25)
+    group by payer_account_id
+),
 retail_transactions as (
-    select
-        consensus_timestamp,
-        payer_account_id
-    from accounts_transactions t1
-    where not exists (
-        select 1
-        from accounts_transactions t2
-        where t1.payer_account_id = t2.payer_account_id
-        and type in(8, 9, 29, 36, 37, 58, 24, 25)
-    )
+    select atx.consensus_timestamp, atx.payer_account_id
+    from accounts_transactions atx
+    left join excluded_accounts ex
+           on atx.payer_account_id = ex.payer_account_id
+    where ex.payer_account_id is null
 ),
 retail_accounts_per_period as (
     select
