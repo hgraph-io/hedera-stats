@@ -1,38 +1,30 @@
+-----------------------
+-- total revenue
+-----------------------
 create or replace function ecosystem.dashboard_revenue(
-    _interval interval, change boolean = false
+    _interval interval
 )
-returns decimal as $$
+returns table (
+    total bigint,
+    previous_total bigint
+) as $$
 
-declare total decimal;
-previous_period_start bigint = (NOW() - _interval * 2)::timestamp9::bigint;
-current_period_start bigint = (NOW() - _interval )::timestamp9::bigint;
+declare
+  total bigint;
+  previous_total bigint;
+
+  previous_period_start bigint = (now() - _interval * 2)::timestamp9::bigint;
+  current_period_start bigint = (now() - _interval )::timestamp9::bigint;
 
 begin
-  -- get percentage change relative to previous period
-  if change then
-   with previous_period AS (
-      select sum(charged_tx_fee) as total
-      from transaction
-      where consensus_timestamp between previous_period_start and current_period_start
-    ),
-    current_period AS (
-      select sum(charged_tx_fee) as total
-      from transaction
-      where consensus_timestamp >= current_period_start
-    )
-    select
-        ((current_period.total::DECIMAL / nullif(previous_period.total, 0)) - 1) * 100
-    into total
-    from current_period, previous_period;
+    select sum(charged_tx_fee) into previous_total
+    from transaction
+    where consensus_timestamp between previous_period_start and current_period_start;
 
-  -- get total count
-  else
-      select sum(charged_tx_fee) into total
-      from transaction
-      where consensus_timestamp >= current_period_start
-  end if;
+    select sum(charged_tx_fee) into total
+    from transaction
+    where consensus_timestamp >= current_period_start;
 
-  -- total or percentage change
-  return total;
-end;
+  return query select total, previous_total;
+end
 $$ language plpgsql;

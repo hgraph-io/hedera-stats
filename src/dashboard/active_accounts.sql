@@ -1,56 +1,39 @@
 -----------------------
 -- Total active accounts
--- select ecosystem.dashboard_active_accounts('90 days');
--- select ecosystem.dashboard_active_accounts('90 days');
--- select ecosystem.dashboard_active_accounts('7 days', true);
--- select ecosystem.dashboard_active_accounts('30 days', true);
--- select ecosystem.dashboard_active_accounts('90 days', true);
 -----------------------
 create or replace function ecosystem.dashboard_active_accounts(
-    _interval interval, change boolean = false
+    _interval interval
 )
-returns decimal as $$
+returns table (
+    total bigint,
+    previous_total bigint
+) as $$
 
-declare total decimal;
-previous_period_start bigint = (NOW() - _interval * 2)::timestamp9::bigint;
-current_period_start bigint = (NOW() - _interval )::timestamp9::bigint;
+declare
+  total bigint;
+  previous_total bigint;
 
+  previous_period_start bigint = (now() - _interval * 2)::timestamp9::bigint;
+  current_period_start bigint = (now() - _interval )::timestamp9::bigint;
 begin
-  -- get percentage change relative to previous period
-  if change then
-   with previous_period AS (
-      select count(*) as total from (
-        select distinct payer_account_id
-        from transaction
-        where consensus_timestamp between previous_period_start and current_period_start
-        and result = 22
-      )
-    ),
-    current_period AS (
-      select count(*) as total from (
-        SELECT distinct payer_account_id
-        from transaction
-        where consensus_timestamp >= current_period_start
-        and result = 22
-      )
-    )
-    SELECT
-        ((current_period.total::DECIMAL / NULLIF(previous_period.total, 0)) - 1) * 100
-    into total
-    FROM current_period, previous_period;
+  with t as (
+    select * from transaction
+    where consensus_timestamp between previous_period_start and current_period_start
+    and result = 22
+  )
+  select count(*) into previous_total from (
+    select distinct payer_account_id from t
+  );
 
-  -- get total count
-  else
-    select count(*) into total from (
-      select distinct payer_account_id
-      from transaction
-      where consensus_timestamp >= current_period_start
-      and result = 22
-    );
+  with t as (
+    select * from transaction
+    where consensus_timestamp >= current_period_start
+    and result = 22
+  )
+  select count(*) into total from (
+    select distinct payer_account_id from t
+  );
 
-  end if;
-
-  -- total or percentage change
-  return total;
-end;
+  return query select total, previous_total;
+end
 $$ language plpgsql;
