@@ -160,7 +160,7 @@
                 },
                 "size": 70,
                 "text": {
-                  "field": "total",
+                  "field": "accounts_90",
                   "fixed": "12,345",
                   "mode": "field"
                 },
@@ -206,7 +206,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": " select ecosystem.dashboard_active_accounts('90 days') as total;",
+          "rawSql": "select * from ecosystem.hashgraph_dashboard;",
           "refId": "Active Accounts",
           "sql": {
             "columns": [
@@ -232,8 +232,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 7 day period compared to the previous 7 day period.",
       "fieldConfig": {
@@ -310,7 +310,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "accounts_7_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -350,31 +350,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": " select ecosystem.dashboard_active_accounts('7 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (7 Days)",
@@ -382,8 +362,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 30 day period compared to the previous 30 day period.",
       "fieldConfig": {
@@ -460,7 +440,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "accounts_30_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -500,31 +480,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": " select ecosystem.dashboard_active_accounts('30 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (30 Days)",
@@ -532,8 +492,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 90 day period compared to the previous 90 day period.",
       "fieldConfig": {
@@ -612,7 +572,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "accounts_90_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -652,31 +612,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": " select ecosystem.dashboard_active_accounts('90 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (90 Days)",
@@ -736,8 +676,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "See explainer below.",
       "fieldConfig": {
@@ -851,7 +791,7 @@
                 },
                 "size": 70,
                 "text": {
-                  "field": "total",
+                  "field": "developers_90",
                   "fixed": "12,345",
                   "mode": "field"
                 },
@@ -891,31 +831,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_active_developer_accounts('90 days') as total;",
-          "refId": "Active Developer Accounts",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Developer Accounts",
@@ -923,8 +843,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 7 day period compared to the previous 7 day period.",
       "fieldConfig": {
@@ -1001,7 +921,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "developers_7_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -1041,31 +961,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_active_developer_accounts('7 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (7 Days)",
@@ -1073,8 +973,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 30 day period compared to the previous 30 day period.",
       "fieldConfig": {
@@ -1151,7 +1051,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "developers_30_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -1191,31 +1091,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_active_developer_accounts('30 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (30 Days)",
@@ -1223,8 +1103,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 90 day period compared to the previous 90 day period.",
       "fieldConfig": {
@@ -1301,7 +1181,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "developers_90_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -1341,31 +1221,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_active_developer_accounts('90 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (90 Days)",
@@ -1425,8 +1285,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "See explainer below.",
       "fieldConfig": {
@@ -1540,7 +1400,7 @@
                 },
                 "size": 70,
                 "text": {
-                  "field": "total",
+                  "field": "retail_90",
                   "fixed": "12,345",
                   "mode": "field"
                 },
@@ -1580,31 +1440,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "with active as (\n  select ecosystem.dashboard_active_accounts('90 days') as active\n), developer as (\n  select ecosystem.dashboard_active_developer_accounts('90 days') as developer\n)\n\nselect active - developer as total from active, developer",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Retail Accounts",
@@ -1612,8 +1452,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 7 day period compared to the previous 7 day period.",
       "fieldConfig": {
@@ -1692,7 +1532,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "retail_7_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -1732,31 +1572,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": " select ecosystem.dashboard_active_retail_accounts('7 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (7 Days)",
@@ -1764,8 +1584,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 30 day period compared to the previous 30 day period.",
       "fieldConfig": {
@@ -1842,7 +1662,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "retail_30_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -1882,31 +1702,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": " select ecosystem.dashboard_active_retail_accounts('30 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (30 Days)",
@@ -1914,8 +1714,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 90 day period compared to the previous 90 day period.",
       "fieldConfig": {
@@ -1992,7 +1792,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "retail_90_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -2032,31 +1832,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": " select ecosystem.dashboard_active_retail_accounts('60 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (90 Days)",
@@ -2116,8 +1896,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "See explainer below.",
       "fieldConfig": {
@@ -2231,7 +2011,7 @@
                 },
                 "size": 70,
                 "text": {
-                  "field": "total",
+                  "field": "contracts_90",
                   "fixed": "12,345",
                   "mode": "field"
                 },
@@ -2271,31 +2051,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": " select ecosystem.dashboard_active_contracts('90 days') as total;",
-          "refId": "Active Smart Contract",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Active Smart Contracts",
@@ -2303,8 +2063,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 7 day period compared to the previous 7 day period.",
       "fieldConfig": {
@@ -2381,7 +2141,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "contracts_7_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -2421,31 +2181,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_active_contracts('7 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (7 Days)",
@@ -2453,8 +2193,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 30 day period compared to the previous 30 day period.",
       "fieldConfig": {
@@ -2531,7 +2271,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "contracts_30_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -2571,31 +2311,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_active_contracts('30 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (30 Days)",
@@ -2603,8 +2323,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 90 day period compared to the previous 90 day period.",
       "fieldConfig": {
@@ -2681,7 +2401,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "contracts_90_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -2721,31 +2441,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_active_contracts('90 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (90 Days)",
@@ -4231,8 +3931,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "See explainer below.",
       "fieldConfig": {
@@ -4346,7 +4046,7 @@
                 },
                 "size": 70,
                 "text": {
-                  "field": "hbar",
+                  "field": "revenue_90 / 100000000",
                   "fixed": "12,345",
                   "mode": "field"
                 },
@@ -4386,40 +4086,44 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_revenue('90 days') / 100000000 as hbar;",
-          "refId": "Network Fee",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Revenue",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "revenue_90"
+                }
+              },
+              "operator": "/",
+              "right": {
+                "fixed": "100000000"
+              }
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "replaceFields": true
+          }
+        }
+      ],
       "type": "canvas"
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 7 day period compared to the previous 7 day period.",
       "fieldConfig": {
@@ -4496,7 +4200,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "revenue_7_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -4536,31 +4240,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_revenue('7 days', true ) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (7 days)",
@@ -4568,8 +4252,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 30 day period compared to the previous 30 day period.",
       "fieldConfig": {
@@ -4646,7 +4330,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "revenue_30_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -4686,31 +4370,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_revenue('30 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (30 Days)",
@@ -4718,8 +4382,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "ee6kaaryxxkowb"
+        "type": "datasource",
+        "uid": "-- Dashboard --"
       },
       "description": "The most recent 30 day period compared to the previous 30 day period.",
       "fieldConfig": {
@@ -4796,7 +4460,7 @@
                 },
                 "size": 48,
                 "text": {
-                  "field": "change",
+                  "field": "revenue_90_growth",
                   "fixed": "42%",
                   "mode": "field"
                 },
@@ -4836,31 +4500,11 @@
       "targets": [
         {
           "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "ee6kaaryxxkowb"
+            "type": "datasource",
+            "uid": "-- Dashboard --"
           },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "select ecosystem.dashboard_revenue('90 days', true) as change;",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          }
+          "panelId": 15,
+          "refId": "A"
         }
       ],
       "title": "Change (90 Days)",
@@ -4933,6 +4577,6 @@
   "timezone": "browser",
   "title": "KPI Dashboard",
   "uid": "ee6m5fvx1mpkwe",
-  "version": 101,
+  "version": 115,
   "weekStart": ""
 }
