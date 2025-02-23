@@ -23,7 +23,7 @@ transactions_fee_per_period as (
 select
     int8range(
         period_start_timestamp::timestamp9::bigint,
-        (lead(period_start_timestamp) over (order by period_start_timestamp rows between current row and 1 following))::timestamp9::bigint
+        coalesce((lead(period_start_timestamp) over (order by period_start_timestamp rows between current row and 1 following))::timestamp9::bigint, end_timestamp)
     ),
     total
 from transactions_fee_per_period
