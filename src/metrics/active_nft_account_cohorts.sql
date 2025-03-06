@@ -20,14 +20,14 @@ language sql stable
 as $$
 
 with all_nft_entries as (
-  select * from nft
+  select timestamp_range, account_id from nft
   where upper(timestamp_range) between start_timestamp and end_timestamp
   or lower(timestamp_range) between start_timestamp and end_timestamp
   and account_id is not null
 
   union all
 
-  select * from nft_history
+  select timestamp_range, account_id from nft_history
   where upper(timestamp_range) between start_timestamp and end_timestamp
   or lower(timestamp_range) between start_timestamp and end_timestamp
   and account_id is not null
@@ -39,7 +39,7 @@ with all_nft_entries as (
   from token_account
   inner join token on token_account.token_id = token.token_id
   where token_account.created_timestamp between start_timestamp and end_timestamp
-  and token.type = 'non_fungible_unique'
+  and token.type = 'NON_FUNGIBLE_UNIQUE'
 
   union all
 

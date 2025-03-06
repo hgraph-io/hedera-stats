@@ -256,16 +256,3 @@ language sql stable
 as $$
 	select upper(_row.timestamp_range)::timestamp9::timestamp at time zone 'UTC';
 $$;
-
--- View existance check
-create or replace function is_view_exists(view_name text)
-returns boolean
-language plpgsql stable
-as $$
-declare
-    view_exists boolean;
-begin
-    execute format('select exists (select 1 from pg_matviews where matviewname = %L)', view_name) into view_exists;
-    return view_exists;
-end
-$$;
