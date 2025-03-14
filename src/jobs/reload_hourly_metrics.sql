@@ -56,7 +56,8 @@ begin
                  'hour' as period,
                  int8range,
                  total
-            from ecosystem.%I('hour', %s, %s)
+          from ecosystem.%I('hour', %s, %s)
+          where upper(int8range) is not null
           on conflict (name, period, timestamp_range)
           do update set total = excluded.total
         $sql$, metric_name, metric_name, start_timestamp, end_timestamp);
