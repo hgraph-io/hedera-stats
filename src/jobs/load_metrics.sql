@@ -33,14 +33,17 @@ begin
     total_time := clock_timestamp();
 
     -- Insert current totals for 3 metrics
+    raise notice 'metric: total_nfts, period: century';
     insert into ecosystem.metric (name, period, timestamp_range, total)
         select 'total_nfts' as name, 'century' as period, int8range as timestamp_range, total
         from ecosystem.current_total_nfts() on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total;
 
+    raise notice 'metric: nft_holders, period: century';
     insert into ecosystem.metric (name, period, timestamp_range, total)
         select 'nft_holders' as name, 'century' as period, int8range as timestamp_range, total
         from ecosystem.current_nft_holders() on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total;
 
+    raise notice 'metric: nft_market_cap, period: century';
     insert into ecosystem.metric (name, period, timestamp_range, total)
         select 'nft_market_cap' as name, 'century' as period, int8range as timestamp_range, total
         from ecosystem.current_nft_market_cap() on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total;
