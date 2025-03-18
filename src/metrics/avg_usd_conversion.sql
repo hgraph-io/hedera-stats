@@ -117,6 +117,7 @@ begin
         || '&endTime=' || new_end_ms
         || '&limit=' || limit_candles;
     begin
+        raise notice 'bybit url: %', bybit_url;
         select content::jsonb into bybit_content from http_get(bybit_url);
         -- raise notice 'bybit content: %', bybit_content;
     exception when others then
