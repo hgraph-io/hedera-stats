@@ -65,8 +65,8 @@ begin
                        'hour' as period,
                        int8range,
                        total
-                from ecosystem.%I('hour', %s, %s)
-                where upper(int8range) is not null
+                  from ecosystem.%I('hour', %s, %s)
+                  where upper(int8range) is not null
                 on conflict (name, period, timestamp_range)
                 do update
                   set total = excluded.total
