@@ -25,6 +25,14 @@ create materialized view ecosystem.hashgraph_dashboard as (
             / previous_total
             * 100 as accounts_90_growth
         from ecosystem.dashboard_active_accounts('90 days')
+      ), (
+        select
+            total as accounts_360,
+            previous_total as accounts_360_previous,
+            (total::decimal - previous_total)
+            / previous_total
+            * 100 as accounts_360_growth
+        from ecosystem.dashboard_active_accounts('360 days')
       )
 
     ), developers as (
@@ -52,6 +60,14 @@ create materialized view ecosystem.hashgraph_dashboard as (
             / previous_total
             * 100 as developers_90_growth
         from ecosystem.dashboard_active_developer_accounts('90 days')
+      ), (
+        select
+            total as developers_360,
+            previous_total as developers_360_previous,
+            (total::decimal - previous_total)
+            / previous_total
+            * 100 as developers_360_growth
+        from ecosystem.dashboard_active_developer_accounts('360 days')
       )
     ), retail as (
       select * from (
@@ -70,6 +86,11 @@ create materialized view ecosystem.hashgraph_dashboard as (
         select
           ((accounts_90 - developers_90)::decimal - (accounts_90_previous - developers_90_previous))
           / (accounts_90_previous - developers_90_previous) * 100 as retail_90_growth
+        from accounts, developers
+      ), (
+        select
+          ((accounts_360 - developers_360)::decimal - (accounts_360_previous - developers_360_previous))
+          / (accounts_360_previous - developers_360_previous) * 100 as retail_360_growth
         from accounts, developers
       )
     ), contracts as (
@@ -97,6 +118,14 @@ create materialized view ecosystem.hashgraph_dashboard as (
             / previous_total
             * 100 as contracts_90_growth
         from ecosystem.dashboard_active_contracts('90 days')
+      ), (
+        select
+            total as contracts_360,
+            previous_total as contracts_360_previous,
+            (total::decimal - previous_total)
+            / previous_total
+            * 100 as contracts_360_growth
+        from ecosystem.dashboard_active_contracts('360 days')
       )
     ), revenue as (
       select * from (
@@ -122,6 +151,14 @@ create materialized view ecosystem.hashgraph_dashboard as (
             / previous_total
             * 100 as revenue_90_growth
         from ecosystem.dashboard_revenue('90 days')
+      ), (
+        select
+            total as revenue_360,
+            previous_total as revenue_360_previous,
+            (total::decimal - previous_total)
+            / previous_total
+            * 100 as revenue_360_growth
+        from ecosystem.dashboard_revenue('360 days')
       )
     )
     select now() as updated_at, * from accounts, developers, retail, contracts, revenue
