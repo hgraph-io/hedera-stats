@@ -40,10 +40,10 @@ select cron.schedule_in_database(
 
 -- daily job
 select cron.schedule_in_database(
-    'refresh materialized view ecosystem.hashgraph_dashboard',
+    'refresh materialized concurrently view ecosystem.hashgraph_dashboard',
     -- daily after midnight UTC
     '10 * * * *',
-    'refresh materialized view ecosystem.hashgraph_dashboard',
+    'refresh materialized view concurrently ecosystem.hashgraph_dashboard',
     '<database_name>',
     '<database_user>'
 );
