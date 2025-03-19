@@ -42,7 +42,7 @@ select cron.schedule_in_database(
 select cron.schedule_in_database(
     'refresh materialized concurrently view ecosystem.hashgraph_dashboard',
     -- daily after midnight UTC
-    '10 * * * *',
+    '10 0 * * *',
     'refresh materialized view concurrently ecosystem.hashgraph_dashboard',
     '<database_name>',
     '<database_user>'
