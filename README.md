@@ -1,16 +1,17 @@
-# Hedera Stats
+# Hedera Stats: Shared Ecosystem and Network Insights
 
 **[Hedera Stats](https://docs.hgraph.com/hedera-stats/introduction)** provides quantitative statistical measurements for the Hedera network, leveraging open-source methodologies, Hedera mirror node data, third-party data sources, and Hgraph's GraphQL API. These statistics include network performance metrics, NFT analytics, account activities, and economic indicators, enabling transparent and consistent analysis of the Hedera ecosystem.
 
-**[View Full Documentation](https://docs.hgraph.com/category/hedera-stats)**
+**[📖 View Full Documentation →](https://docs.hgraph.com/category/hedera-stats)**
 
 ## Getting Started
 
 ### Prerequisites
 - **Hedera Mirror Node** or access to **Hgraph's GraphQL API**
   - [Create a free account](https://hgraph.com/hedera)
-- **Prometheus** (`promtool`) for telemetry data (time to consensus)
-- **PostgreSQL database** (recommended for SQL script execution)
+- **Prometheus** (`promtool`) for `avg_time_to_consensus` ([view docs](https://prometheus.io/docs/introduction/overview/))
+- **PostgreSQL database** needed for SQL script execution ([view docs](https://www.postgresql.org/docs/current/))
+- **DeFiLlama API** for decentralized finance metrics ([view docs](https://defillama.com/docs/api)).
 
 ### Installation
 Clone this repository:
@@ -25,6 +26,7 @@ Install Prometheus CLI (`promtool`):
 ```bash
 curl -L -O https://github.com/prometheus/prometheus/releases/download/v3.1.0/prometheus-3.1.0.linux-amd64.tar.gz
 tar -xvf prometheus-3.1.0.linux-amd64.tar.gz
+# one way to add the tool to the PATH
 cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 ```
 
@@ -45,16 +47,14 @@ Schedule incremental updates:
 
 ```bash
 crontab -e
-
-# Add the following line to run hourly updates
-1 * * * * cd /path/to/hedera-stats/src && bash ./run.sh >> ./cron.log 2>&1
+1 * * * * cd /path/to/hedera-stats/src/time-to-consensus && bash ./run.sh >> ./.raw/cron.log 2>&1
 ```
 
 ## Repository Structure
 ```
 hedera-stats/
 ├── src/
-│   ├── dashboard/             # SQL scripts for Grafana dashboards
+│   ├── dashboard/             # SQL for Grafana dashboards & Grafana template
 │   ├── helpers/               # Helper SQL functions
 │   ├── jobs/                  # Incremental data update scripts
 │   ├── metrics/               # SQL queries for metrics
@@ -67,15 +67,21 @@ hedera-stats/
 
 Metrics categories include:
 
-- **Accounts & Network Participants**
-- **NFT-specific Metrics**
-- **Network Performance & Economic Metrics**
+- Accounts & Network Participants
+- NFT-specific Metrics
+- Network Performance & Economic Metrics
 
-[View all metrics & documentation](https://docs.hgraph.com/category/hedera-stats)
+[**View all metrics & documentation →**](https://docs.hgraph.com/category/hedera-stats)
 
-### Fetching Metrics via GraphQL
+### Usage Example: Custom Grafana Dashboard
 
-Query available metrics dynamically:
+Use Grafana to visualize metrics:
+- Import `Hedera_KPI_Dashboard.json` from `src/dashboard`.
+- SQL queries provided in the same directory serve as data sources.
+
+### Usage Example: Fetching Metrics via GraphQL API
+
+Query available metrics dynamically via GraphQL API ([test in our developer playground](https://dashboard.hgraph.com)):
 
 ```graphql
 query AvailableMetrics {
@@ -88,25 +94,6 @@ query AvailableMetrics {
   }
 }
 ```
-
-## Example Dashboard
-
-Use Grafana to visualize metrics:
-- Import `KPI Dashboard-1739411040848.json` from `src/dashboard`.
-- SQL queries provided in the same directory serve as data sources.
-
-## Incremental Updates & Automation
-
-Set up automated hourly updates using cron:
-
-```bash
-crontab -e
-
-# Schedule the script execution hourly
-1 * * * * cd /path/to/hedera-stats/src && bash ./run.sh >> ./cron.log 2>&1
-```
-
-Ensure cron logs (`cron.log`) are monitored for successful execution.
 
 ## Troubleshooting & FAQs
 
@@ -122,9 +109,12 @@ Ensure cron logs (`cron.log`) are monitored for successful execution.
 
 ## Additional Resources
 
-- [API Documentation](https://hgraph.com/hedera)
+- [**Full Hedera Stats Documentation →**](https://hgraph.com/hedera)
+- [Hedera Mirror Node Docs](https://docs.hedera.com/hedera/core-concepts/mirror-nodes)
 - [Hedera Transaction Result Codes](https://github.com/hashgraph/hedera-mirror-node/blob/main/hedera-mirror-rest/model/transactionResult.js)
 - [Hedera Transaction Types](https://github.com/hashgraph/hedera-mirror-node/blob/main/hedera-mirror-rest/model/transactionType.js)
+- [DeFiLlama API Documentation](https://defillama.com/docs/api)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/current/)
 
 ## Contribution Guidelines
 
