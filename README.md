@@ -109,7 +109,7 @@ query AvailableMetrics {
 
 ## Additional Resources
 
-- [**Full Hedera Stats Documentation →**](https://hgraph.com/hedera)
+- [**Full Hedera Stats Documentation →**](https://docs.hgraph.com/category/hedera-stats)
 - [Hedera Mirror Node Docs](https://docs.hedera.com/hedera/core-concepts/mirror-nodes)
 - [Hedera Transaction Result Codes](https://github.com/hashgraph/hedera-mirror-node/blob/main/hedera-mirror-rest/model/transactionResult.js)
 - [Hedera Transaction Types](https://github.com/hashgraph/hedera-mirror-node/blob/main/hedera-mirror-rest/model/transactionType.js)
