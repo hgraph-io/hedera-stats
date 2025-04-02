@@ -128,4 +128,4 @@ We welcome contributions!
 
 ## License
 
-TBD
+[Apache License 2.0](https://github.com/hgraph-io/hedera-stats/blob/main/LICENSE)
