@@ -3,7 +3,7 @@ begin
   if not exists (
     select 1 from pg_type where typname = '_active_nft_account_cohort'
     ) then
-    execute 'create type ecosystem._active_nft_account_cohort as (cohort timestamp, timestamp_range int8range, total bigint)';
+    execute 'create type ecosystem._active_nft_account_cohort as (period text, cohort timestamp, timestamp_range int8range, total bigint)';
   end if;
 end;
 $$ language plpgsql;
@@ -79,6 +79,7 @@ with all_nft_entries as (
   ), all_cohorts_with_range as (
 
   select
+  period,
   cohort,
   int8range(
     period_start_timestamp::timestamp9::bigint,
