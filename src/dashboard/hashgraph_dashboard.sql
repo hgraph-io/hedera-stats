@@ -1,5 +1,5 @@
 -- drop materialized view if exists ecosystem.hashgraph_dashboard;
-create materialized view ecosystem.temp_hashgraph_dashboard as (
+create materialized view ecosystem.hashgraph_dashboard as (
     with accounts as (
       select * from (
         select

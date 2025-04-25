@@ -1,3 +1,6 @@
+-----------------------
+-- stablecoin marketcap
+-----------------------
 create or replace procedure ecosystem.load_stablecoin_marketcap()
 as $$
 

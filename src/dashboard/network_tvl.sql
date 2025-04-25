@@ -1,3 +1,6 @@
+-----------------------
+-- network_tvl
+-----------------------
 create or replace procedure ecosystem.load_network_tvl()
 as $$
 
