@@ -6,25 +6,24 @@ as $$
 declare
 
     metrics text[] := array [
-        -- 'accounts_associating_nfts',
-        -- 'accounts_receiving_nfts',
-        -- 'accounts_sending_nfts',
-        -- 'accounts_minting_nfts',
-        -- 'accounts_creating_nft_collections',
-        -- 'active_nft_accounts',
-        -- 'active_nft_builder_accounts',
-        -- 'nft_collections_created',
-        -- 'nfts_minted',
-        -- 'nfts_transferred',
-        -- 'nft_sales_volume',
-        -- 'active_developer_accounts',
-        -- 'active_retail_accounts',
-        -- 'active_smart_contracts',
+        'accounts_associating_nfts',
+        'accounts_receiving_nfts',
+        'accounts_sending_nfts',
+        'accounts_minting_nfts',
+        'accounts_creating_nft_collections',
+        'active_nft_accounts',
+        'active_nft_builder_accounts',
+        'nft_collections_created',
+        'nfts_minted',
+        'nfts_transferred',
+        'nft_sales_volume',
+        'active_developer_accounts',
+        'active_retail_accounts',
+        'active_smart_contracts',
         'active_accounts',
         'network_fee'
-        -- 'account_growth',
-        -- 'network_tps',
-        -- 'avg_usd_conversion'
+        'account_growth',
+        'network_tps'
     ];
     metric_name text;
 

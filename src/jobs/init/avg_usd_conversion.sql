@@ -1,3 +1,8 @@
+---------------------------------------------
+-- Initial load for avg_usd_conversion metric
+-- This script will load the metric from the external apis in a way that doesn't
+-- pass the rate limit of the apis
+----------------------
 do $$
 declare
  start_date timestamp9 := (select min(lower(timestamp_range))::timestamp9 - interval '8 days' from ecosystem.metric where name = 'avg_usd_conversion' and period = 'hour');
