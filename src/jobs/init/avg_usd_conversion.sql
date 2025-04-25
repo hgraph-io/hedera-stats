@@ -2,6 +2,7 @@
 -- Initial load for avg_usd_conversion metric
 -- This script will load the metric from the external apis in a way that doesn't
 -- pass the rate limit of the apis
+-- it finds the last date in the metric table and loads the data backwards from that date
 ----------------------
 do $$
 declare
