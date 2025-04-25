@@ -5,7 +5,10 @@
 ----------------------
 do $$
 declare
- start_date timestamp9 := (select min(lower(timestamp_range))::timestamp9 - interval '8 days' from ecosystem.metric where name = 'avg_usd_conversion' and period = 'hour');
+ start_date timestamp9 := coalesce(
+  (select min(lower(timestamp_range))::timestamp9 - interval '8 days' from ecosystem.metric where name = 'avg_usd_conversion' and period = 'hour'),
+  (select max(consensus_timestamp)::timestamp9 from transaction)
+ );
  end_date timestamp9 := (start_date + interval '4 days');
 
  first_transaction timestamp9 := (select min(consensus_timestamp)::timestamp9 from transaction);
