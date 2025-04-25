@@ -21,7 +21,7 @@ declare
         'active_retail_accounts',
         'active_smart_contracts',
         'active_accounts',
-        'network_fee'
+        'network_fee',
         'account_growth',
         'network_tps'
     ];
