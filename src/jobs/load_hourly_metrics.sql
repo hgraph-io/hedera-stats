@@ -23,8 +23,9 @@ declare
         'active_accounts',
         'network_fee',
         'account_growth',
-        'network_tps',
-        'avg_usd_conversion'
+        'network_tps'
+				-- ,
+        -- 'avg_usd_conversion'
     ];
     metric_name text;
 
