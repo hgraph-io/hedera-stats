@@ -1,4 +1,4 @@
-create or replace function create_active_nft_account_cohort() returns void as $$
+create or replace function ecosystem.create_active_nft_account_cohort() returns void as $$
 begin
   if not exists (
     select 1 from pg_type where typname = '_active_nft_account_cohort'
@@ -8,7 +8,7 @@ begin
 end;
 $$ language plpgsql;
 
-select create_active_nft_account_cohort();
+select ecosystem.create_active_nft_account_cohort();
 
 create or replace function ecosystem.active_nft_account_cohorts(
   period text,

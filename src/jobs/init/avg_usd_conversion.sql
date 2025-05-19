@@ -1,6 +1,15 @@
+---------------------------------------------
+-- Initial load for avg_usd_conversion metric
+-- This script will load the metric from the external apis in a way that doesn't
+-- pass the rate limit of the apis
+-- it finds the last date in the metric table and loads the data backwards from that date
+----------------------
 do $$
 declare
- start_date timestamp9 := (select min(lower(timestamp_range))::timestamp9 - interval '8 days' from ecosystem.metric where name = 'avg_usd_conversion' and period = 'hour');
+ start_date timestamp9 := coalesce(
+  (select min(lower(timestamp_range))::timestamp9 - interval '8 days' from ecosystem.metric where name = 'avg_usd_conversion' and period = 'hour'),
+  (select max(consensus_timestamp)::timestamp9 from transaction)
+ );
  end_date timestamp9 := (start_date + interval '4 days');
 
  first_transaction timestamp9 := (select min(consensus_timestamp)::timestamp9 from transaction);
