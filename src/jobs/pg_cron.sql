@@ -77,6 +77,15 @@ select cron.schedule_in_database(
 );
 
 select cron.schedule_in_database(
+    'call ecosystem.load_daily_metrics()',
+    -- daily at midnight
+    '6 0 * * *',
+    'call ecosystem.load_daily_metrics();',
+    '<database_name>',
+    '<database_user>'
+);
+
+select cron.schedule_in_database(
     'call ecosystem.load_network_tvl()',
     -- daily after midnight UTC
     '2 0 * * *',
