@@ -7,6 +7,10 @@ declare
     current_period text;
 
     metrics text[] := array [
+        'active_accounts',
+        'active_developer_accounts',
+        'active_retail_accounts',
+        'active_smart_contracts',
         'accounts_associating_nfts',
         'accounts_receiving_nfts',
         'accounts_sending_nfts',
