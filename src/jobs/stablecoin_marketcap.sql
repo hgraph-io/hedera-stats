@@ -15,9 +15,11 @@ as $$
   ),
   transformed as (
     select
+      -- DeFiLlama timestamps are midnight UTC; forward range ensures row
+      -- is labeled with the same calendar day
       int8range(
-        (to_timestamp(date_sec) - '1 day'::interval)::timestamp9::bigint,
-        (to_timestamp(date_sec))::timestamp9::bigint
+        (to_timestamp(date_sec))::timestamp9::bigint,
+        (to_timestamp(date_sec) + '1 day'::interval)::timestamp9::bigint
       ) as timestamp_range,
     marketcap
     from defillama
