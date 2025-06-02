@@ -13388,7 +13388,7 @@
             "type": "yesoreyeram-infinity-datasource",
             "uid": "${DS_HGRAPH}"
           },
-          "description": "The most recent Stablecoin Marketcap for Hedera (updated daily).",
+          "description": "The most recent Stablecoin Marketcap for Hedera (updated every 10 minutes).",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -15105,7 +15105,7 @@
             "type": "yesoreyeram-infinity-datasource",
             "uid": "${DS_HGRAPH}"
           },
-          "description": "The most recent Stablecoin Marketcap for Hedera (updated daily).",
+          "description": "The most recent Stablecoin Marketcap for Hedera (updated every 10 minutes).",
           "fieldConfig": {
             "defaults": {
               "color": {
