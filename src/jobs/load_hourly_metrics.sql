@@ -23,7 +23,8 @@ declare
         'active_accounts',
         'network_fee',
         'account_growth',
-        'network_tps'
+        'network_tps',
+        'new_accounts'
     ];
     metric_name text;
 
