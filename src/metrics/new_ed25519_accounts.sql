@@ -1,4 +1,4 @@
-create or replace function ecosystem.new_accounts(
+create or replace function ecosystem.new_ed25519_accounts(
   period text,
   start_timestamp bigint default 0,
   end_timestamp bigint default CURRENT_TIMESTAMP::timestamp9::bigint

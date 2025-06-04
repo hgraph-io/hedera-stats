@@ -1,4 +1,4 @@
-create or replace function ecosystem.new_accounts(
+create or replace function ecosystem.new_smart_contracts(
   period text,
   start_timestamp bigint default 0,
   end_timestamp bigint default CURRENT_TIMESTAMP::timestamp9::bigint
@@ -13,7 +13,7 @@ with all_entries as (
   where type = 'CONTRACTS'
   and created_timestamp between start_timestamp and end_timestamp
 ),
-accounts_per_period as (
+contracts_per_period as (
   select date_trunc(period, created_timestamp::timestamp9::timestamp) as period_start_timestamp,
   count(*) as total
   from all_entries
@@ -27,6 +27,6 @@ int8range(
 ),
 total
 
-from accounts_per_period
+from contracts_per_period
 
 $$;

@@ -25,7 +25,7 @@ declare
         'account_growth',
         'network_tps',
         'new_accounts',
-        'new_ed25519accounts',
+        'new_ed25519_accounts',
         'new_smart_contracts'
     ];
     metric_name text;
