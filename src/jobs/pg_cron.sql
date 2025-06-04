@@ -87,8 +87,8 @@ select cron.schedule_in_database(
 
 select cron.schedule_in_database(
     'call ecosystem.load_network_tvl()',
-    -- daily after midnight UTC
-    '2 0 * * *',
+    -- every 10 minutes starting at minute 2
+    '2-59/10 * * * *',
     'call ecosystem.load_network_tvl();',
     '<database_name>',
     '<database_user>'
@@ -96,8 +96,8 @@ select cron.schedule_in_database(
 
 select cron.schedule_in_database(
     'call ecosystem.load_stablecoin_marketcap()',
-    -- daily after midnight UTC
-    '3 0 * * *',
+    -- every 10 minutes starting at minute 3
+    '3-59/10 * * * *',
     'call ecosystem.load_stablecoin_marketcap()',
     '<database_name>',
     '<database_user>'
