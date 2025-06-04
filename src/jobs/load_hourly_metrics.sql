@@ -21,6 +21,8 @@ declare
         'active_retail_accounts',
         'active_smart_contracts',
         'active_accounts',
+        'active_ecdsa_accounts',
+        'active_ed25519_accounts',
         'network_fee',
         'account_growth',
         'network_tps',
