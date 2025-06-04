@@ -8,7 +8,11 @@ declare
     metrics text[] := array [
       'network_fee',
       'network_tps',
-      'new_accounts'
+      'new_accounts',
+      'total_accounts',
+      'total_ecdsa_accounts',
+      'total_ed25519_accounts',
+      'total_smart_contracts'
     ];
     metric_name text;
 
