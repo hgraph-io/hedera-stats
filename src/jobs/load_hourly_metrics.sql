@@ -24,7 +24,10 @@ declare
         'network_fee',
         'account_growth',
         'network_tps',
-        'new_accounts'
+        'new_accounts',
+        'new_ecdsa_accounts',
+        'new_ed25519_accounts',
+        'new_smart_contracts'
     ];
     metric_name text;
 

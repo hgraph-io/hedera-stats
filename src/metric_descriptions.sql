@@ -25,7 +25,10 @@ values
     ('network_tvl', 'Total value locked (USD) in the ecosystem during the period', ''),
     ('stablecoin_marketcap', 'Total market capitalization (USD) of stablecoins in the ecosystem during the period', ''),
     ('avg_usd_conversion', 'Average conversion of HBAR to US dollars multiplied by 10,000 during the period', 'The average of candlestick closing prices for a given period for the HBAR/USDT pair on the five major exchanges by trading volume (Binance, Bybit, OKX, Bitget and MEXC) was calculated. The price is multiplied by 10,000 for integer representation for each time period.'),
-    ('new_accounts', 'New accounts created on the Hedera network per period', '')
+    ('new_accounts', 'New accounts created on the Hedera network per period.', '')
+    ('new_ecdsa_accounts', 'Returns the number of newly created Hedera accounts per time period (e.g., day, month) within a specified timestamp range, filtering for accounts that are of type 'ACCOUNT', created successfully (t.result = 22), and have a key prefix indicating an ED25519 key ('12' in hex).', '')
+    ('new_ed25519_accounts', 'Calculates the number of newly created Hedera accounts with ECDSA(secp256k1) public keys, grouped by a specified time interval and constrained by a given timestamp range.', '')
+    ('new_smart_contracts', 'New smart contracts created on the Hedera network per period.', '')
 on conflict (name) do update
 set
     description = excluded.description,
