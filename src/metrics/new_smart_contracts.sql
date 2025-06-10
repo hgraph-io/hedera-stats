@@ -10,7 +10,7 @@ as $$
 with all_entries as (
   select created_timestamp
   from entity
-  where type = 'CONTRACTS'
+  where type = 'CONTRACT'
   and created_timestamp between start_timestamp and end_timestamp
 ),
 contracts_per_period as (
