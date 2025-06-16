@@ -28,6 +28,9 @@ values
     ('new_accounts', 'New accounts created on the Hedera network per period', ''),
     ('active_ecdsa_accounts', 'The number equal developers + retails during the period filtered by ECDSA account key type.', ''),
     ('active_ed25519_accounts', 'The number equal developers + retails during the period filtered by Ed25519 account key type.', ''),
+    ('new_ecdsa_accounts', 'Returns the number of newly created Hedera accounts per time period (e.g., day, month) within a specified timestamp range, filtering for accounts that are of type "ACCOUNT", created successfully (t.result = 22), and have a key prefix indicating an ED25519 key ("12" in hex).', ''),
+    ('new_ed25519_accounts', 'Calculates the number of newly created Hedera accounts with ECDSA(secp256k1) public keys, grouped by a specified time interval and constrained by a given timestamp range.', ''),
+    ('new_smart_contracts', 'New smart contracts created on the Hedera network per period.', '')
 on conflict (name) do update
 set
     description = excluded.description,
