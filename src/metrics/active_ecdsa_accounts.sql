@@ -1,7 +1,7 @@
 CREATE
 OR
-replace FUNCTION ecosystem.active_ecdsa_accounts( period text, start_timestamp bigint DEFAULT 0, end_timestamp bigint DEFAULT CURRENT_TIMESTAMP::timestamp9::bigint )
-returns setof ecosystem.metric_total AS $$ WITH ecdsa_transactions AS
+replace FUNCTION ecosystem.active_ed25519_accounts( period text, start_timestamp bigint DEFAULT 0, end_timestamp bigint DEFAULT CURRENT_TIMESTAMP::timestamp9::bigint )
+returns setof ecosystem.metric_total AS $$ WITH ed25519_transactions AS
 (
        SELECT t.consensus_timestamp,
               t.payer_account_id
@@ -13,13 +13,12 @@ returns setof ecosystem.metric_total AS $$ WITH ecdsa_transactions AS
        AND    e.KEY IS NOT NULL
        AND    e.created_timestamp IS NOT NULL
        AND    (
-                     e.public_key LIKE '02%'
-              OR     e.public_key LIKE '03%' ) ), ecdsa_accounts_per_period AS
+                     e.public_key LIKE '302a300506032b6570%') ), ed25519_accounts_per_period AS
 (
          SELECT   date_trunc(period, consensus_timestamp::timestamp9::timestamp) AS period_start_timestamp,
                   count(DISTINCT payer_account_id)                               AS total
-         FROM     ecdsa_transactions
+         FROM     ed25519_transactions
          GROUP BY 1
          ORDER BY 1 DESC )SELECT   int8range( period_start_timestamp::timestamp9::bigint, (lead(period_start_timestamp) OVER (ORDER BY period_start_timestamp rows BETWEEN CURRENT row AND      1 following))::timestamp9::bigint ),
          total
-FROM     ecdsa_accounts_per_period $$ language sql stable;
+FROM     ed25519_accounts_per_period $$ language sql stable;
