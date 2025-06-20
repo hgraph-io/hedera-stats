@@ -22,7 +22,11 @@ declare
         'nfts_minted',
         'nfts_transferred',
         'nft_sales_volume',
-        'avg_usd_conversion'
+        'avg_usd_conversion',
+        'total_accounts',
+        'total_ecdsa_accounts',
+        'total_ed25519_accounts',
+        'total_smart_contracts'
     ];
     metric text;
 
