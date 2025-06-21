@@ -11,8 +11,6 @@ declare
         'active_developer_accounts',
         'active_retail_accounts',
         'active_smart_contracts',
-        'active_ecdsa_accounts',
-        'active_ed25519_accounts',
         'accounts_associating_nfts',
         'accounts_receiving_nfts',
         'accounts_sending_nfts',
