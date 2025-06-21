@@ -1,5 +1,5 @@
 create 
-or replace function ecosystem.total_contracts(
+or replace function ecosystem.total_smart_contracts(
   period text, start_timestamp bigint default 0, 
   end_timestamp bigint default CURRENT_TIMESTAMP :: timestamp9 :: bigint
 ) returns setof ecosystem.metric_total language sql stable as $$ with all_entries as (
@@ -17,7 +17,7 @@ accounts_per_period as (
     date_trunc(
       period, created_timestamp :: timestamp9 :: timestamp
     ) as period_start_timestamp, 
-    count(*) as total_contracts 
+    count(*) as total_smart_contracts 
   from 
     all_entries 
   group by 
@@ -36,7 +36,7 @@ select
       )
     ):: timestamp9 :: bigint
   ), 
-  sum(total_contracts) over (
+  sum(total_smart_contracts) over (
     order by 
       period_start_timestamp asc
   ) as total 
