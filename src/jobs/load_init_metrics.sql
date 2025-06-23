@@ -11,7 +11,6 @@ declare
         'total_accounts',
         'total_ecdsa_accounts',
         'total_ed25519_accounts',
-        'active_accounts',
         'active_ed25519_accounts'
     ];
     metric text;
