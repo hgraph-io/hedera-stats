@@ -3,8 +3,8 @@ or replace function ecosystem.total_ecdsa_accounts(
   period text, start_timestamp bigint default 0, 
   end_timestamp bigint default CURRENT_TIMESTAMP :: timestamp9 :: bigint
 ) returns setof ecosystem.metric_total language sql stable as $$ with all_entries as (
-  select 
-    created_timestamp 
+  select  distinct on (num)
+          created_timestamp 
   from 
     entity 
   where 
@@ -15,6 +15,7 @@ or replace function ecosystem.total_ecdsa_accounts(
       public_key like '02%' 
       or public_key like '03%'
     )
+    order  by num, created_timestamp
 ), 
 accounts_per_period as (
   select 

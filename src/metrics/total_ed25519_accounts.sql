@@ -3,8 +3,8 @@ or replace function ecosystem.total_ed25519_accounts(
   period text, start_timestamp bigint default 0, 
   end_timestamp bigint default CURRENT_TIMESTAMP :: timestamp9 :: bigint
 ) returns setof ecosystem.metric_total language sql stable as $$ with all_entries as (
-  select 
-    created_timestamp 
+  select  distinct on (num)
+          created_timestamp 
   from 
     entity 
   where 
@@ -12,6 +12,7 @@ or replace function ecosystem.total_ed25519_accounts(
     and created_timestamp between start_timestamp 
     and end_timestamp
     and substring(key from 1 for 2) = E'\\x1220'
+        order  by num, created_timestamp
 ), 
 accounts_per_period as (
   select 
