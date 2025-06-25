@@ -8,10 +8,7 @@ declare
 
     -- trimmed to the five requested metrics
     metrics text[] := array[
-        'total_accounts',
-        'total_ecdsa_accounts',
-        'total_ed25519_accounts',
-        'active_ed25519_accounts'
+        'total_smart_contracts'
     ];
     metric text;
 
