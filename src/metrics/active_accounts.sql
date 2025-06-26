@@ -37,5 +37,16 @@ SELECT
     ),
     total
 FROM   merged_data
+WHERE  (
+        CASE period
+          WHEN 'hour'    THEN period_start + INTERVAL '1 hour'
+          WHEN 'day'     THEN period_start + INTERVAL '1 day'
+          WHEN 'week'    THEN period_start + INTERVAL '1 week'
+          WHEN 'month'   THEN period_start + INTERVAL '1 month'
+          WHEN 'quarter' THEN period_start + INTERVAL '3 months'
+          WHEN 'year'    THEN period_start + INTERVAL '1 year'
+          ELSE period_start + INTERVAL '1 day'
+        END
+       ) <= CURRENT_TIMESTAMP 
 ORDER  BY period_start DESC;
 $$ LANGUAGE sql STABLE;
