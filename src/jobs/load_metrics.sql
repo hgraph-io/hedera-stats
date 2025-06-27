@@ -7,10 +7,17 @@ declare
     current_period text;
 
     metrics text[] := array [
-        'active_accounts',
+        'total_accounts',
+        'total_ecdsa_accounts',
+        'total_ed25519_accounts',
+        'total_smart_contracts',
+        'avg_usd_conversion',
         'active_developer_accounts',
         'active_retail_accounts',
         'active_smart_contracts',
+        'active_accounts',
+        'active_ecdsa_accounts',
+        'active_ed25519_accounts',
         'accounts_associating_nfts',
         'accounts_receiving_nfts',
         'accounts_sending_nfts',
@@ -21,12 +28,7 @@ declare
         'nft_collections_created',
         'nfts_minted',
         'nfts_transferred',
-        'nft_sales_volume',
-        'avg_usd_conversion',
-        'total_accounts',
-        'total_ecdsa_accounts',
-        'total_ed25519_accounts',
-        'total_smart_contracts'
+        'nft_sales_volume'
     ];
     metric text;
 

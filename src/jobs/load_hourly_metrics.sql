@@ -6,6 +6,18 @@ as $$
 declare
 
     metrics text[] := array [
+        'new_accounts',
+        'new_ecdsa_accounts',
+        'new_ed25519_accounts',
+        'new_smart_contracts',
+        'network_tps',
+        'network_fee',
+        'active_developer_accounts',
+        'active_retail_accounts',
+        'active_smart_contracts',
+        'active_accounts',
+        'active_ecdsa_accounts',
+        'active_ed25519_accounts',       
         'accounts_associating_nfts',
         'accounts_receiving_nfts',
         'accounts_sending_nfts',
@@ -17,17 +29,7 @@ declare
         'nfts_minted',
         'nfts_transferred',
         'nft_sales_volume',
-        'active_developer_accounts',
-        'active_retail_accounts',
-        'active_smart_contracts',
-        'active_accounts',
-        'network_fee',
-        'account_growth',
-        'network_tps',
-        'new_accounts',
-        'new_ecdsa_accounts',
-        'new_ed25519_accounts',
-        'new_smart_contracts'
+        'account_growth'
     ];
     metric_name text;
 
