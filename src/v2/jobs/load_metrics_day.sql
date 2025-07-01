@@ -1,5 +1,7 @@
--- LOAD METRICS DAY
+----------------------------------------------------
+-- LOAD METRICS DAY / HEDERASTATS.com / HGRAPH.com
 -- Automates upsert of metrics into ecosystem.metric
+----------------------------------------------------
 
 create or replace procedure ecosystem.load_metrics_day(out summary jsonb default null)
 language plpgsql
