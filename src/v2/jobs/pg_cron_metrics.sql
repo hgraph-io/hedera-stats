@@ -1,19 +1,8 @@
------------------------------------
--- ECOSYSTEM METRICS (HEDERA STATS)
--- HGRAPH / www.hgraph.com
------------------------------------
+------------------------------------------
+-- HGRAPH ECOSYSTEM METRICS (HEDERA STATS)
+-- DOCS / docs.hgraph.com/hedera-stats
+------------------------------------------
 
--- EVERY 1 MIN
-
-select 
-  cron.schedule_in_database(
-    'call ecosystem.load_metrics_minute()', 
-    -- every minute
-    '* * * * *', 
-    'call ecosystem.load_metrics_minute()', 
-    '<database_name>', 
-    '<database_user>'
-  );
 
 -- EVERY 1 HOUR
 
@@ -27,61 +16,76 @@ select
     '<database_user>'
   );
 
+
 -- EVERY 1 DAY
 
 select 
   cron.schedule_in_database(
     'call ecosystem.load_metrics_day()', 
-    -- Daily at 12:05am
-    '5 0 * * *', 
+    -- Daily at 12:02am
+    '4 0 * * *', 
     'call ecosystem.load_metrics_day()', 
     '<database_name>', 
     '<database_user>'
   );
+
+select 
+  cron.schedule_in_database(
+    'call ecosystem.load_metrics_beta()', 
+    -- Daily at 12:03am
+    '5 0 * * *', 
+    'call ecosystem.load_metrics_beta()', 
+    '<database_name>', 
+    '<database_user>'
+  );
+
 
 -- EVERY 1 WEEK
 
 select 
   cron.schedule_in_database(
     'call ecosystem.load_metrics_week()', 
-    -- Weekly on Sunday at 12:15am
-    '15 0 * * 0', 
+    -- Weekly on Sunday at 12:02am
+    '2 0 * * 0', 
     'call ecosystem.load_metrics_week()', 
     '<database_name>', 
     '<database_user>'
   );
+
 
 -- EVERY 1 MONTH
 
 select 
   cron.schedule_in_database(
     'call ecosystem.load_metrics_month()', 
-    -- Monthly at 12:30am, on the 1st
-    '30 0 1 * *', 
+    -- Monthly at 12:04am, on the 1st
+    '4 0 1 * *', 
     'call ecosystem.load_metrics_month()', 
     '<database_name>', 
     '<database_user>'
   );
+
 
 -- EVERY 1 QUARTER
 
 select 
   cron.schedule_in_database(
     'call ecosystem.load_metrics_quarter()', 
-    -- Quarterly at 12:30am (1st of Jan, Apr, Jul, Oct)
-    '30 0 1 1,4,7,10 *', 
+    -- Quarterly at 12:08am (1st of Jan, Apr, Jul, Oct)
+    '8 0 1 1,4,7,10 *', 
     'call ecosystem.load_metrics_quarter()', 
     '<database_name>', 
     '<database_user>'
   );
+
 
 -- EVERY 1 YEAR
 
 select 
   cron.schedule_in_database(
     'call ecosystem.load_metrics_year()', 
-    -- Yearly at 12:30am on January 1st
-    '30 0 1 1 *', 
+    -- Yearly at 12:14am on January 1st
+    '14 0 1 1 *', 
     'call ecosystem.load_metrics_year()', 
     '<database_name>', 
     '<database_user>'
