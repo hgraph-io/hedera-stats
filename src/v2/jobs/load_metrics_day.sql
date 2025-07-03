@@ -7,7 +7,7 @@ create or replace procedure ecosystem.load_metrics_day(out summary jsonb default
 language plpgsql
 as $$
 declare
-    periods constant text[] := array['day'];      -- Day
+    periods constant text[] := array['day'];      -- Day (the period for this job)
     metrics constant text[] := array[
         'total_accounts',
         'total_ecdsa_accounts',
@@ -26,7 +26,7 @@ declare
         'new_ecdsa_accounts',
         'new_ed25519_accounts',
         'new_smart_contracts'
-    ];                                            -- Fixed metric set
+    ];                                            -- Metrics (functions for this job)
     current_period text;
     metric text;
 

@@ -1,7 +1,6 @@
 insert into ecosystem.metric_description (name, description, methodology)
 values
-
-('active_developer_accounts', 'An active developer account is one that performs at least one creative or infrastructure-related action, such as deploying contracts or minting tokens, within a given period.', 'Counts unique accounts that executed at least one developer-related transaction (e.g., contract deployment or token creation) during the period.'),
+    ('active_developer_accounts', 'An active developer account is one that performs at least one creative or infrastructure-related action, such as deploying contracts or minting tokens, within a given period.', 'Counts unique accounts that executed at least one developer-related transaction (e.g., contract deployment or token creation) during the period.'),
     ('active_retail_accounts', 'Active retail accounts are a subset of active accounts that exclude smart contracts and accounts with developer-like transactions.', 'Determined by filtering out smart contract accounts and developer accounts from all active accounts, leaving only active non-developer accounts.'),
     ('active_smart_contracts', 'The number of unique smart contracts invoked at least once in a gas-consuming transaction within a given time period.', 'Counts unique smart contracts that were successfully invoked via a gas-consuming (state-changing) transaction at least once during the period.'),
     ('active_ecdsa_accounts', 'Counts unique accounts with ECDSA keys that pay for at least one transaction within a given timeframe.', 'Counts unique accounts with ECDSA keys (starting with 02 or 03) that initiated (paid for) at least one successful transaction in the period.'),
@@ -41,4 +40,3 @@ on conflict (name) do update
 set
     description = excluded.description,
     methodology = excluded.methodology;
-    
