@@ -1,4 +1,4 @@
-create or replace procedure ecosystem.load_metrics()
+create or replace procedure ecosystem.load_init_metrics()
 language plpgsql
 as $$
 
@@ -6,29 +6,9 @@ declare
     periods text[] := array['day', 'week', 'month', 'quarter', 'year', 'century'];
     current_period text;
 
-    metrics text[] := array [
-        'total_accounts',
-        'total_ecdsa_accounts',
-        'total_ed25519_accounts',
-        'total_smart_contracts',
-        'avg_usd_conversion',
-        'active_developer_accounts',
-        'active_retail_accounts',
-        'active_smart_contracts',
-        'active_accounts',
-        'active_ecdsa_accounts',
-        'active_ed25519_accounts',
-        'accounts_associating_nfts',
-        'accounts_receiving_nfts',
-        'accounts_sending_nfts',
-        'accounts_minting_nfts',
-        'accounts_creating_nft_collections',
-        'active_nft_accounts',
-        'active_nft_builder_accounts',
-        'nft_collections_created',
-        'nfts_minted',
-        'nfts_transferred',
-        'nft_sales_volume'
+    -- trimmed to the five requested metrics
+    metrics text[] := array[
+        'total_smart_contracts'
     ];
     metric text;
 
@@ -39,22 +19,6 @@ declare
 begin
     set time zone 'UTC';
     total_time := clock_timestamp();
-
-    -- Insert current totals for 3 metrics
-    raise notice 'metric: total_nfts, period: century';
-    insert into ecosystem.metric (name, period, timestamp_range, total)
-        select 'total_nfts' as name, 'century' as period, int8range as timestamp_range, total
-        from ecosystem.current_total_nfts() on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total;
-
-    raise notice 'metric: nft_holders, period: century';
-    insert into ecosystem.metric (name, period, timestamp_range, total)
-        select 'nft_holders' as name, 'century' as period, int8range as timestamp_range, total
-        from ecosystem.current_nft_holders() on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total;
-
-    raise notice 'metric: nft_market_cap, period: century';
-    insert into ecosystem.metric (name, period, timestamp_range, total)
-        select 'nft_market_cap' as name, 'century' as period, int8range as timestamp_range, total
-        from ecosystem.current_nft_market_cap() on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total;
 
     -- Metrics for different time intervals
     foreach metric in array metrics loop
