@@ -7,7 +7,7 @@ create or replace procedure ecosystem.load_metrics_year(out summary jsonb defaul
 language plpgsql
 as $$
 declare
-    periods constant text[] := array['year'];      -- Quarter (the period for this job)
+    periods constant text[] := array['year'];      -- Year (the period for this job)
     metrics constant text[] := array[
         'total_accounts',
         'total_ecdsa_accounts',
