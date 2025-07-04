@@ -12,6 +12,7 @@
 - **Prometheus** (`promtool`) for `avg_time_to_consensus` ([view docs](https://prometheus.io/docs/introduction/overview/))
 - **PostgreSQL database** needed for SQL script execution ([view docs](https://www.postgresql.org/docs/current/))
 - **DeFiLlama API** for decentralized finance metrics ([view docs](https://defillama.com/docs/api)).
+- **pg_http** PostgreSQL extension is required for `avg_usd_conversion.sql` to fetch HBAR price data.
 
 ### Installation
 Clone this repository:
@@ -49,6 +50,11 @@ Schedule incremental updates:
 crontab -e
 1 * * * * cd /path/to/hedera-stats/src/time-to-consensus && bash ./run.sh >> ./.raw/cron.log 2>&1
 ```
+
+The script `src/v2/jobs/pg_cron_metrics.sql` schedules metric loaders using the
+[pg_cron](https://github.com/citusdata/pg_cron) extension. Replace the
+`<database_name>` and `<database_user>` placeholders in that file with the name
+of your database and an authorized user before running the script.
 
 ## Repository Structure
 ```
