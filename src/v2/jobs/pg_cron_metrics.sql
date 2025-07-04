@@ -3,6 +3,9 @@
 -- DOCS / docs.hgraph.com/hedera-stats
 ------------------------------------------
 
+-- Replace <database_name> and <database_user> below with your database and the
+-- user that should run the jobs before executing this file.
+
 
 -- EVERY 1 HOUR
 

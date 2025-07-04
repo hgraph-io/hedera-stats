@@ -1,3 +1,4 @@
+-- Requires the pg_http extension for HTTP requests
 create or replace function ecosystem.avg_usd_conversion(
     period text,
     start_timestamp bigint default 0,
