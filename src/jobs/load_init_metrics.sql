@@ -3,12 +3,17 @@ language plpgsql
 as $$
 
 declare
-    periods text[] := array['day', 'week', 'month', 'quarter', 'year', 'century'];
+    periods text[] := array['day'];
     current_period text;
 
     -- trimmed to the five requested metrics
     metrics text[] := array[
-        'total_smart_contracts'
+        'active_developer_accounts',
+        'active_retail_accounts',
+        'active_smart_contracts',
+        'active_accounts',
+        'active_ecdsa_accounts',
+        'active_ed25519_accounts'
     ];
     metric text;
 

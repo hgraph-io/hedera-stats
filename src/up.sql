@@ -3,7 +3,7 @@ create schema if not exists ecosystem;
 -- https://github.com/citusdata/pg_cron
 create extension if not exists pg_cron;
 -- https://github.com/optiver/timestamp9
-create extention if not exists timestamp9;
+create extension if not exists timestamp9;
 -- https://github.com/pramsey/pgsql-http
 create extension if not exists http;
 
