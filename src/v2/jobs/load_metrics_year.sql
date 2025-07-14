@@ -3,7 +3,7 @@
 -- Automates upsert of metrics into ecosystem.metric
 ----------------------------------------------------
 
-create or replace procedure ecosystem.load_metrics_year(out summary jsonb default null)
+create or replace procedure ecosystem.load_metrics_year()
 language plpgsql
 as $$
 declare
@@ -85,16 +85,13 @@ begin
         end loop;
     end loop;
 
-    -- Return summary object (for automated jobs or monitoring)
-    summary := jsonb_build_object(
+    -- Log summary
+    raise info 'Load_metrics summary: %', jsonb_build_object(
         'metrics_processed', processed_metrics,
         'errors', errors,
         'ran_at_utc', now(),
         'elapsed_seconds', extract(epoch from (clock_timestamp() - total_time))
     );
-
-    -- Optional: output summary as info-level log (could be removed for even quieter logs)
-    raise info 'Load_metrics summary: %', summary;
 
 end;
 $$;

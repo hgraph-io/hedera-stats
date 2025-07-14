@@ -3,8 +3,7 @@
 -- DOCS / docs.hgraph.com/hedera-stats
 ------------------------------------------
 
--- Replace <database_name> and <database_user> below with your database and the
--- user that should run the jobs before executing this file.
+-- Replace <database_name> with "hedera_mainnet" or "hedera_testnet"
 
 
 -- EVERY 1 HOUR
@@ -15,8 +14,7 @@ SELECT
     -- Hourly at minute 1
     '1 * * * *', 
     'call ecosystem.load_metrics_hour()', 
-    '<database_name>', 
-    '<database_user>'
+    '<database_name>'
   );
 
 
@@ -28,8 +26,7 @@ SELECT
     -- Daily at 12:02am
     '2 0 * * *', 
     'call ecosystem.load_metrics_day()', 
-    '<database_name>', 
-    '<database_user>'
+    '<database_name>'
   );
 
 SELECT 
@@ -38,8 +35,7 @@ SELECT
     -- Daily at 12:03am
     '3 0 * * *', 
     'call ecosystem.load_metrics_beta()', 
-    '<database_name>', 
-    '<database_user>'
+    '<database_name>'
   );
 
 
@@ -51,8 +47,7 @@ SELECT
     -- Weekly on Sunday at 12:02am
     '2 0 * * 0', 
     'call ecosystem.load_metrics_week()', 
-    '<database_name>', 
-    '<database_user>'
+    '<database_name>'
   );
 
 
@@ -64,8 +59,7 @@ SELECT
     -- Monthly at 12:04am, on the 1st
     '4 0 1 * *', 
     'call ecosystem.load_metrics_month()', 
-    '<database_name>', 
-    '<database_user>'
+    '<database_name>'
   );
 
 
@@ -77,8 +71,7 @@ SELECT
     -- Quarterly at 12:08am (1st of Jan, Apr, Jul, Oct)
     '8 0 1 1,4,7,10 *', 
     'call ecosystem.load_metrics_quarter()', 
-    '<database_name>', 
-    '<database_user>'
+    '<database_name>'
   );
 
 
@@ -90,6 +83,5 @@ SELECT
     -- Yearly at 12:14am on January 1st
     '14 0 1 1 *', 
     'call ecosystem.load_metrics_year()', 
-    '<database_name>', 
-    '<database_user>'
+    '<database_name>'
   );

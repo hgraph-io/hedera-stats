@@ -116,6 +116,21 @@ psql -h <host> -p <port> -U <user> -d <database>
 - Re-test data outputs to confirm the reversion is complete and queries return expected results.
 - Log the issue in the PR and resume troubleshooting.
 
+**See currently loaded procedures:**
+
+```sql
+SELECT proname, proargtypes, proargnames
+FROM pg_proc
+WHERE pronamespace = 'ecosystem'::regnamespace;
+```
+
+**Drop/remove a procedure:**
+
+```sql
+-- Replace <period> with hour, day, week etc
+DROP PROCEDURE IF EXISTS ecosystem.load_metrics_<period>();
+```
+
 ## Formalize New Functions and Procedures (Stats)
 
 1. Perform a final review of all changes in the repository.
