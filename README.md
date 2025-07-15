@@ -7,6 +7,7 @@
 ## Getting Started
 
 ### Prerequisites
+
 - **Hedera Mirror Node** or access to **Hgraph's GraphQL API**
   - [Create a free account](https://hgraph.com/hedera)
 - **Prometheus** (`promtool`) for `avg_time_to_consensus` ([view docs](https://prometheus.io/docs/introduction/overview/))
@@ -15,6 +16,7 @@
 - **pg_http** PostgreSQL extension is required for `avg_usd_conversion.sql` to fetch HBAR price data.
 
 ### Installation
+
 Clone this repository:
 
 ```bash
@@ -34,6 +36,7 @@ cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 ### Initial Configuration
 
 Set up your database:
+
 - Execute `src/up.sql` to create necessary database schema and tables.
 - Load initial data using SQL scripts from the `src/jobs` directory.
 
@@ -57,6 +60,7 @@ The script `src/v2/jobs/pg_cron_metrics.sql` schedules metric loaders using the
 of your database and an authorized user before running the script.
 
 ## Repository Structure
+
 ```
 hedera-stats/
 ├── src/
@@ -82,6 +86,7 @@ Metrics categories include:
 ### Usage Example: Custom Grafana Dashboard
 
 Use Grafana to visualize metrics:
+
 - Import `Hedera_KPI_Dashboard.json` from `src/dashboard`.
 - SQL queries provided in the same directory serve as data sources.
 
@@ -104,11 +109,13 @@ query AvailableMetrics {
 ## Troubleshooting & FAQs
 
 ### Missing data or discrepancies?
+
 - Verify you're querying the correct API endpoint:
   - Staging environment (`hgraph.dev`) may have incomplete data.
   - Production endpoint (`hgraph.io`) requires an API key.
 
 ### Improve query performance:
+
 - Use broader granularity (day/month) for extensive periods.
 - Limit result size with `limit` and `order_by`.
 - Cache frequently accessed data.

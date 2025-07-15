@@ -1,4 +1,4 @@
--- daily job
+-- daily job [DEPRECATED - JULY 15 2025]
 create or replace procedure ecosystem.load_daily_metrics()
 language plpgsql
 as $$
@@ -6,12 +6,7 @@ as $$
 declare
 
     metrics text[] := array [
-      'network_fee',
-      'network_tps',
-      'new_accounts',
-      'new_ecdsa_accounts',
-      'new_ed25519_accounts',
-      'new_smart_contracts'
+    -- Empty. Next remove cron job.
     ];
     metric_name text;
 

@@ -21,15 +21,15 @@ Follow these guidelines throughout the workflow:
 
 ## Create New Functions (Stats)
 
-*Functions perform data computation in-line with methodologies. This step finds the data and attempts to get the desired outputs.*
+_Functions perform data computation in-line with methodologies. This step finds the data and attempts to get the desired outputs._
 
-### Connect to Hedera Stats database:
+**Connect to Hedera Stats database:**
 
 ```bash
 psql -h <host> -p <port> -U <user> -d <database>
 ```
 
-*Note: You will need to host your own mirror node.*
+_Note: You will need to host your own mirror node._
 
 1. Determine data availability using a probing query.
 
@@ -66,7 +66,7 @@ psql -h <host> -p <port> -U <user> -d <database>
 
 ## Integrate New Functions (Stats)
 
-*This step focuses on adding new functions to the repository.*
+_This step focuses on adding new functions to the repository._
 
 1. Review the SQL file for the new function.
 
@@ -78,7 +78,7 @@ psql -h <host> -p <port> -U <user> -d <database>
 
 ## Test New Functions and procedures (Stats)
 
-*This step focuses on testing the functions and procedures.*
+_This step focuses on testing the functions and procedures._
 
 1. Open an executable environment.
 
@@ -91,6 +91,7 @@ psql -h <host> -p <port> -U <user> -d <database>
    ```sql
    -- Enter hour, day, week etc. for <period>
    CALL ecosystem.load_metrics_<period>();
+   
    -- For backfilling/new metrics
    CALL ecosystem.load_metrics_init();
    ```
@@ -115,6 +116,24 @@ psql -h <host> -p <port> -U <user> -d <database>
 - Revert all updated procedures to the versions from the main branch of the repository.
 - Re-test data outputs to confirm the reversion is complete and queries return expected results.
 - Log the issue in the PR and resume troubleshooting.
+
+**See details of a procedure:**
+
+```sql
+SELECT
+    n.nspname AS schema_name,
+    p.proname AS procedure_name,
+    pg_get_functiondef(p.oid) AS definition
+FROM
+    pg_proc p
+JOIN
+    pg_namespace n ON p.pronamespace = n.oid
+WHERE
+    p.prokind = 'p'
+    AND n.nspname = 'ecosystem'
+    -- Replace <name> with name of procedure.
+    AND p.proname = '<name>';
+```
 
 **See currently loaded procedures:**
 
@@ -156,9 +175,9 @@ DROP PROCEDURE IF EXISTS ecosystem.load_metrics_<period>();
 
 6. Move the new stats to the “Official” tab in the Hedera Stats spreadsheet.
 
-## Update/Activate Cron Jobs 
+## Update/Activate Cron Jobs
 
-*This step focuses on updating/configuring cron jobs.*
+_This step focuses on updating/configuring cron jobs._
 
 **Creating new job:**
 

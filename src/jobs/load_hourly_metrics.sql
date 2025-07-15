@@ -1,23 +1,12 @@
--- hourly job
+-- hourly job [LEGACY - July 15th 2025]
 create or replace procedure ecosystem.load_hourly_metrics()
 language plpgsql
 as $$
 
 declare
 
-    metrics text[] := array [
-        'new_accounts',
-        'new_ecdsa_accounts',
-        'new_ed25519_accounts',
-        'new_smart_contracts',
-        'network_tps',
-        'network_fee',
-        'active_developer_accounts',
-        'active_retail_accounts',
-        'active_smart_contracts',
-        'active_accounts',
-        'active_ecdsa_accounts',
-        'active_ed25519_accounts',       
+    metrics text[] := array [      
+        -- Legacy metrics. Migrate to Hedera Stats. 
         'accounts_associating_nfts',
         'accounts_receiving_nfts',
         'accounts_sending_nfts',
