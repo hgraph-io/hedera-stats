@@ -61,12 +61,13 @@ of your database and an authorized user before running the script.
 
 ## Repository Structure
 
-```
+```markdown
 hedera-stats/
 ├── src/
 │   ├── dashboard/             # SQL for Grafana dashboards & Grafana template
 │   ├── helpers/               # Helper SQL functions
 │   ├── jobs/                  # Incremental data update scripts
+│   │   ├── legacy/            # Incremental data update scripts (legacy/deprecated)
 │   ├── metrics/               # SQL queries for metrics
 │   └── up.sql                 # Initial database schema setup
 ├── LICENSE
@@ -114,7 +115,7 @@ query AvailableMetrics {
   - Staging environment (`hgraph.dev`) may have incomplete data.
   - Production endpoint (`hgraph.io`) requires an API key.
 
-### Improve query performance:
+### Improve query performance
 
 - Use broader granularity (day/month) for extensive periods.
 - Limit result size with `limit` and `order_by`.
