@@ -67,9 +67,8 @@ hedera-stats/
 │   ├── dashboard/             # SQL for Grafana dashboards & Grafana template
 │   ├── helpers/               # Helper SQL functions
 │   ├── jobs/                  # Incremental data update scripts
-│   │   ├── legacy/            # Incremental data update scripts (legacy/deprecated)
 │   ├── metrics/               # SQL queries for metrics
-│   └── up.sql                 # Initial database schema setup
+│   └── setup/                 # Initial database schema setup script
 ├── LICENSE
 └── README.md
 ```
