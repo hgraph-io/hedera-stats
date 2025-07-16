@@ -31,12 +31,16 @@ declare
     period_loop_time timestamp;
 
     starting_timestamp bigint := 0;
+    end_timestamp_bigint bigint;
     processed_metrics int := 0;
     errors jsonb := '[]'::jsonb;
 
 begin
     set time zone 'UTC';
     total_time := clock_timestamp();
+
+    -- Always truncate to the start of the current hour in UTC
+    end_timestamp_bigint := date_trunc('hour', now())::timestamp9::bigint;
 
     -- Loop through each metric and period
     foreach metric in array metrics loop
@@ -63,10 +67,10 @@ begin
                 execute format(
                     'insert into ecosystem.metric (name, period, timestamp_range, total)
                      select %L as name, %L as period, int8range as timestamp_range, total
-                     from ecosystem.%I(%L::text, %L::bigint) 
+                     from ecosystem.%I(%L::text, %L::bigint, %L::bigint)
                      where upper(int8range) is not null
                      on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total',
-                    metric, current_period, metric, current_period, starting_timestamp
+                    metric, current_period, metric, current_period, starting_timestamp, end_timestamp_bigint
                 );
 
                 processed_metrics := processed_metrics + 1;
