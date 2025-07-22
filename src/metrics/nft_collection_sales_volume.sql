@@ -1,10 +1,11 @@
 -- NFT collection sales volume
+
 CREATE 
-OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume2(
+OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume(
   token_ids bigint[], period text, row_limit integer
 ) RETURNS TABLE (
   token_id bigint, collection_name text, 
-  nft_period timestamp, total_tinybar bigint
+  nft_period timestamp, total bigint
 ) AS $$ DECLARE current_period timestamp;
 start_period timestamp;
 min_consensus_ts bigint;
@@ -49,7 +50,7 @@ sales AS (
       period, 
       to_timestamp(nt.consensus_timestamp / 1e9)
     ) AS nft_period, 
-    SUM(ct.amount):: bigint AS total_tinybar 
+    SUM(ct.amount):: bigint AS total 
   FROM 
     public.nft_transfer nt 
     JOIN public.transaction tx ON nt.consensus_timestamp = tx.consensus_timestamp 
@@ -67,7 +68,7 @@ SELECT
   c.token_id, 
   t.name :: text AS collection_name, 
   c.nft_period, 
-  COALESCE(s.total_tinybar, 0) AS total_tinybar 
+  COALESCE(s.total, 0) AS total 
 FROM 
   combos c 
   JOIN public.token t ON t.token_id = c.token_id 
@@ -75,6 +76,5 @@ FROM
   AND s.nft_period = c.nft_period 
 ORDER BY 
   c.nft_period DESC, 
-  total_tinybar DESC;
-END
-$$ LANGUAGE plpgsql;
+  total DESC;
+END $$ LANGUAGE plpgsql;
