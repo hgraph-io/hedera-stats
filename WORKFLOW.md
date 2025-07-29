@@ -195,6 +195,11 @@ _This step focuses on updating/configuring cron jobs._
 
 6. Merge PR.
 
+### Hasura Notes
+
+- Update metadata file for new functions.
+- Refer to [this documentation](https://github.com/hgraph-io/hg-core/tree/784ae415dfb072e05a630d08033d1d6767cccbc7/services/hedera/gql).
+
 ### Tips
 
 View running cron jobs:

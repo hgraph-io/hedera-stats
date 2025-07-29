@@ -1,12 +1,21 @@
+-- Create types for function
+
+CREATE TABLE ecosystem._nft_collection_sales_volume (
+  token_id bigint,
+  collection_name text,
+  nft_period timestamp,
+  total bigint
+);
+
 -- NFT collection sales volume
 
-CREATE 
-OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume(
+CREATE OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume(
   token_ids bigint[], period text, row_limit integer
-) RETURNS TABLE (
-  token_id bigint, collection_name text, 
-  nft_period timestamp, total bigint
-) AS $$ DECLARE current_period timestamp;
+)
+RETURNS SETOF ecosystem._nft_collection_sales_volume
+LANGUAGE plpgsql
+AS $$
+DECLARE current_period timestamp;
 start_period timestamp;
 min_consensus_ts bigint;
 BEGIN 
@@ -64,17 +73,18 @@ sales AS (
     nt.token_id, 
     nft_period
 ) 
-SELECT 
-  c.token_id, 
-  t.name :: text AS collection_name, 
-  c.nft_period, 
-  COALESCE(s.total, 0) AS total 
-FROM 
-  combos c 
-  JOIN public.token t ON t.token_id = c.token_id 
-  LEFT JOIN sales s ON s.token_id = c.token_id 
-  AND s.nft_period = c.nft_period 
-ORDER BY 
-  c.nft_period DESC, 
-  total DESC;
-END $$ LANGUAGE plpgsql;
+  SELECT 
+    c.token_id, 
+    t.name::text, 
+    c.nft_period, 
+    COALESCE(s.total, 0)
+  FROM 
+    combos c 
+    JOIN public.token t ON t.token_id = c.token_id 
+    LEFT JOIN sales s ON s.token_id = c.token_id 
+    AND s.nft_period = c.nft_period 
+  ORDER BY 
+    c.nft_period DESC, 
+    total DESC;
+END;
+$$;
