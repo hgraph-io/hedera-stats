@@ -1,4 +1,4 @@
--- Example query
+-- EXAMPLE QUERY: NFT collection sales volume
 
 SELECT
   *
@@ -11,13 +11,17 @@ FROM
 
 --drop table ecosystem._nft_collection_sales_volume cascade;
 
+-- CREATE TABLE: NFT collection sales volume
+
 create table ecosystem._nft_collection_sales_volume(
   token_id bigint,
   collection_name text,
   nft_period timestamp,
   total bigint
 );
--- NFT collection sales volume
+
+-- CREATE FUNCTION: NFT collection sales volume
+
 CREATE OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume(
   token_ids bigint[],
   period text,
