@@ -14,13 +14,12 @@ CREATE OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume(
 )
 RETURNS SETOF ecosystem._nft_collection_sales_volume
 LANGUAGE plpgsql
+STABLE
 AS $$
 DECLARE current_period timestamp;
 start_period timestamp;
 min_consensus_ts bigint;
 BEGIN 
-SET 
-  LOCAL timezone = 'UTC';
 current_period := date_trunc(period, CURRENT_TIMESTAMP);
 start_period := current_period - (
   (row_limit - 1) || ' ' || period
