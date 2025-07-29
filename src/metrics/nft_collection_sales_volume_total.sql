@@ -1,7 +1,7 @@
--- EXAMPLE QUERY: NFT collection sales volume (aggregate)
+-- EXAMPLE QUERY: NFT collection sales volume (total)
 
 SELECT *
-FROM ecosystem.nft_collection_sales_volume_aggregate(
+FROM ecosystem.nft_collection_sales_volume_total(
   ARRAY[4573896, 6024491, 5959530, 2153883, 9105927, 2179656, 9206452, 1298985, 5959486, 2021726, 
       8302178, 1317352, 1518297, 9218794, 9318575, 9290188, 8308459, 7898692, 9273095, 1350444, 
       1898089, 7864631, 6178143, 8807608, 9352093, 9265340, 7850408, 7324928, 9171591, 8253153, 
@@ -15,23 +15,23 @@ FROM ecosystem.nft_collection_sales_volume_aggregate(
   0::bigint
 );
 
--- CREATE TABLE: NFT collection sales volume (aggregate)
+-- CREATE TABLE: NFT collection sales volume (total)
 
-CREATE TABLE ecosystem._nft_collection_sales_volume_aggregate (
+CREATE TABLE ecosystem._nft_collection_sales_volume_total (
   token_id bigint,
   collection_name text,
   total bigint
 );
 
 
--- CREATE FUNCTION: NFT collection sales volume (aggregate)
+-- CREATE FUNCTION: NFT collection sales volume (total)
 
-CREATE OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume_aggregate(
+CREATE OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume_total(
   token_ids bigint[],
   start_ts bigint DEFAULT 0, 
   end_ts bigint DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000000000)::bigint
 )
-RETURNS SETOF ecosystem._nft_collection_sales_volume_aggregate
+RETURNS SETOF ecosystem._nft_collection_sales_volume_total
 LANGUAGE plpgsql
 STABLE
 AS $$
