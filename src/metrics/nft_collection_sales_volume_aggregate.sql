@@ -36,14 +36,10 @@ LANGUAGE plpgsql
 STABLE
 AS $$
 BEGIN
-
-  CREATE TEMP TABLE temp_tokens (token_id bigint PRIMARY KEY) ON COMMIT DROP;
-  INSERT INTO temp_tokens (token_id)
-  SELECT DISTINCT unnest(token_ids);
-
-  ANALYZE temp_tokens;
-
-  RETURN QUERY WITH 
+  RETURN QUERY
+    WITH temp_tokens AS (
+      SELECT DISTINCT unnest(token_ids) AS token_id
+    ),
     expanded_nfts AS (
       SELECT 
         tx.consensus_timestamp,
@@ -94,15 +90,15 @@ BEGIN
       LEFT JOIN ct_total ct ON ct.consensus_timestamp = td.consensus_timestamp
       GROUP BY nt.token_id
     )
-  SELECT 
-    tt.token_id, 
-    t.name::text,
-    COALESCE(s.total_tinybar, 0) AS total
-  FROM 
-    temp_tokens tt
-    JOIN public.token t ON t.token_id = tt.token_id 
-    LEFT JOIN sales s ON s.token_id = tt.token_id 
-  ORDER BY 
-    COALESCE(s.total_tinybar, 0) DESC;
+    SELECT 
+      tt.token_id, 
+      t.name::text,
+      COALESCE(s.total_tinybar, 0) AS total
+    FROM 
+      temp_tokens tt
+      JOIN public.token t ON t.token_id = tt.token_id 
+      LEFT JOIN sales s ON s.token_id = tt.token_id 
+    ORDER BY 
+      COALESCE(s.total_tinybar, 0) DESC;
 END
 $$;
