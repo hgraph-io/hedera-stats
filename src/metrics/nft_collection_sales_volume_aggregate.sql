@@ -20,7 +20,7 @@ FROM ecosystem.nft_collection_sales_volume_aggregate(
 CREATE TABLE ecosystem._nft_collection_sales_volume_aggregate (
   token_id bigint,
   collection_name text,
-  total_tinybar bigint
+  total bigint
 );
 
 
@@ -96,8 +96,8 @@ BEGIN
     )
   SELECT 
     tt.token_id, 
-    t.name::text,  -- column order must match the table!
-    COALESCE(s.total_tinybar, 0) 
+    t.name::text,
+    COALESCE(s.total_tinybar, 0) AS total
   FROM 
     temp_tokens tt
     JOIN public.token t ON t.token_id = tt.token_id 
