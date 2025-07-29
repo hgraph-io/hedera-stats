@@ -1,4 +1,4 @@
--- Example query
+-- EXAMPLE QUERY: NFT collection sales volume
 
 SELECT 
   * 
@@ -9,7 +9,7 @@ FROM
     50
 );
 
--- Create types for function
+-- CREATE TABLE: NFT collection sales volume
 
 CREATE TABLE ecosystem._nft_collection_sales_volume (
   token_id bigint,
@@ -18,7 +18,7 @@ CREATE TABLE ecosystem._nft_collection_sales_volume (
   total bigint
 );
 
--- NFT collection sales volume
+-- CREATE FUNCTION: NFT collection sales volume
 
 CREATE OR REPLACE FUNCTION ecosystem.nft_collection_sales_volume(
   token_ids bigint[], period text, row_limit integer
