@@ -1,9 +1,8 @@
 -- New HTS transactions
 CREATE OR REPLACE FUNCTION ecosystem.new_hts_transactions (
-  period             public.interval_granularity,
-  start_timestamp    BIGINT DEFAULT 0,
-  end_timestamp      BIGINT DEFAULT
-      (extract(epoch FROM current_timestamp) * 1e9)::BIGINT
+  period TEXT,
+  start_timestamp BIGINT DEFAULT 0,
+  end_timestamp BIGINT DEFAULT (extract(epoch FROM current_timestamp) * 1e9)::BIGINT
 )
 RETURNS TABLE (timestamp_range INT8RANGE, total BIGINT)
 LANGUAGE SQL STABLE
@@ -15,7 +14,7 @@ WITH all_entries AS (
     AND  type IN (29,31,32,33,34,35,36,37,38,39,40,41,45,46,47,53,57,58,59,60)
 ),
 periodized AS (
-  SELECT date_trunc(period::TEXT,
+  SELECT date_trunc(period,
                     to_timestamp(consensus_timestamp / 1e9)) AS period_start,
          COUNT(*) AS total
   FROM   all_entries

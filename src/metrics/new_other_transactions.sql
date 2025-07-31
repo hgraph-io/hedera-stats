@@ -1,9 +1,8 @@
 -- New Other transactions
 CREATE OR REPLACE FUNCTION ecosystem.new_other_transactions (
-  period             public.interval_granularity,
-  start_timestamp    BIGINT DEFAULT 0,
-  end_timestamp      BIGINT DEFAULT
-      (extract(epoch FROM current_timestamp) * 1e9)::BIGINT
+  period TEXT,
+  start_timestamp BIGINT DEFAULT 0,
+  end_timestamp BIGINT DEFAULT (extract(epoch FROM current_timestamp) * 1e9)::BIGINT
 )
 RETURNS TABLE (timestamp_range INT8RANGE, total BIGINT)
 LANGUAGE SQL STABLE
@@ -15,7 +14,7 @@ WITH all_entries AS (
     AND  type IN (20,21,23,28,42,43,44,51,52,54,55,56,65)
 ),
 periodized AS (
-  SELECT date_trunc(period::TEXT,
+  SELECT date_trunc(period,
                     to_timestamp(consensus_timestamp / 1e9)) AS period_start,
          COUNT(*) AS total
   FROM   all_entries
