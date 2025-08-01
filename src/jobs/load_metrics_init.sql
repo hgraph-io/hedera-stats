@@ -9,7 +9,7 @@ as $$
 declare
     periods constant text[] := array['day', 'week'];      -- Enter desired periods
     metrics constant text[] := array[
-    --  'ADD_METRIC',
+        'new_hts_transactions',
     ];                                                    -- Metrics to initialize
     current_period text;
     metric text;

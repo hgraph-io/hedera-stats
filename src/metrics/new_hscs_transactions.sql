@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION ecosystem.new_hscs_transactions (
   start_timestamp BIGINT DEFAULT 0,
   end_timestamp BIGINT DEFAULT (extract(epoch FROM current_timestamp) * 1e9)::BIGINT
 )
-RETURNS TABLE (timestamp_range INT8RANGE, total BIGINT)
+RETURNS TABLE (int8range INT8RANGE, total BIGINT)
 LANGUAGE SQL STABLE
 AS $$
 WITH all_entries AS (
@@ -27,7 +27,7 @@ SELECT int8range(
            (extract(epoch FROM LEAD(period_start) OVER (ORDER BY period_start)) * 1e9)::BIGINT,
            end_timestamp + 1
          )
-       ) AS timestamp_range,
+       ) AS int8range,
        total
 FROM periodized;
 $$;
