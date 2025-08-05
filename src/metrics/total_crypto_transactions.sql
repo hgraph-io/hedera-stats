@@ -1,5 +1,5 @@
--- Total other transactions
-CREATE OR REPLACE FUNCTION ecosystem.total_other_transactions (
+-- Total Crypto transactions
+CREATE OR REPLACE FUNCTION ecosystem.total_crypto_transactions (
   period TEXT,
   start_timestamp BIGINT DEFAULT 0,
   end_timestamp BIGINT DEFAULT (extract(epoch FROM current_timestamp) * 1e9)::BIGINT
@@ -11,7 +11,7 @@ WITH all_entries AS (
   SELECT consensus_timestamp
   FROM public.transaction
   WHERE consensus_timestamp <= end_timestamp
-    AND  type IN (20,21,23,28,42,43,44,51,52,54,55,56,65)
+    AND  type IN (10,11,12,13,14,15,48,49)
 ),
 periodized AS (
   SELECT date_trunc(period, to_timestamp(consensus_timestamp / 1e9)) AS period_start,
