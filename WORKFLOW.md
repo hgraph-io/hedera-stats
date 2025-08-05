@@ -209,3 +209,22 @@ Unschedule a cron job:
 -- Replace <number> with jobid
 select cron.unschedule(<number>);
 ```
+
+## Delete Data
+
+Preview data to be deleted:
+
+```sql
+SELECT *
+FROM ecosystem.metric
+WHERE name = '<metric_name>'
+  AND period = '<period>';
+```
+
+Delete data:
+
+```sql
+DELETE FROM ecosystem.metric
+WHERE name = '<metric_name>'
+  AND period = '<period>';
+```
