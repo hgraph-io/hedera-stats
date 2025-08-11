@@ -4,12 +4,10 @@ AS $$
 DECLARE
     periods CONSTANT text[] := array['hour', 'day', 'week', 'month', 'quarter', 'year'];
     metrics CONSTANT text[] := array[
-        'total_hts_transactions',
-        'total_crypto_transactions',
-        'total_other_transactions',
-        'new_hts_transactions',
-        'new_crypto_transactions',
-        'new_other_transactions'
+        'total_hcs_transactions',
+        'total_transactions',
+        'new_hcs_transactions',
+        'new_transactions'
     ];
     current_period TEXT;
     metric TEXT;
