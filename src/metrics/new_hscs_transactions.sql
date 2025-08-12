@@ -29,5 +29,7 @@ SELECT int8range(
          )
        ) AS int8range,
        total
-FROM periodized;
+FROM periodized
+WHERE (extract(epoch FROM period_start) * 1e9) >= start_timestamp
+  AND (extract(epoch FROM period_start) * 1e9) < end_timestamp;
 $$;

@@ -1,4 +1,6 @@
 -- New transactions (all)
+-- Add where filter back in !!!
+
 CREATE OR REPLACE FUNCTION ecosystem.new_transactions (
   period TEXT,
   start_timestamp BIGINT DEFAULT 0,

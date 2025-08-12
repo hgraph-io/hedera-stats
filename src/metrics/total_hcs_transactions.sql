@@ -1,4 +1,6 @@
 -- Total HCS transactions
+-- Add where filter back in !!!
+
 CREATE OR REPLACE FUNCTION ecosystem.total_hcs_transactions (
   period TEXT,
   start_timestamp BIGINT DEFAULT 0,

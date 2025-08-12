@@ -1,5 +1,5 @@
 ----------------------------------------------------
--- LOAD METRICS INIT / HEDERASTATS.com / HGRAPH.com
+-- LOAD METRICS HOUR / HEDERASTATS.com / HGRAPH.com
 -- Automates upsert of metrics into ecosystem.metric
 ----------------------------------------------------
 
@@ -7,11 +7,10 @@ create or replace procedure ecosystem.load_metrics_init()
 language plpgsql
 as $$
 declare
-    periods constant text[] := array['hour', 'day'];      -- Enter desired periods
+    periods constant text[] := array['hour', 'day', 'week'];      -- Hour (the period for this job)
     metrics constant text[] := array[
-        'new_transactions',
-        'new_hcs_transactions'
-    ];                                                    -- Metrics to initialize
+        'new_hfs_transactions'
+    ];                                             -- Metrics (functions for this job)
     current_period text;
     metric text;
 
@@ -28,12 +27,12 @@ begin
     set time zone 'UTC';
     total_time := clock_timestamp();
 
+    -- Always truncate to the start of the current hour in UTC
+    end_timestamp_bigint := date_trunc('hour', now())::timestamp9::bigint;
+
     -- Loop through each metric and period
     foreach metric in array metrics loop
         metric_loop_time := clock_timestamp();
-
-        -- Truncate now() to correct period for end bound
-        end_timestamp_bigint := date_trunc(current_period, now())::timestamp9::bigint;
 
         foreach current_period in array periods loop
             period_loop_time := clock_timestamp();
