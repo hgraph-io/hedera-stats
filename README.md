@@ -1,6 +1,8 @@
 # Hedera Stats: Shared Ecosystem and Network Insights
 
-**[Hedera Stats](https://docs.hgraph.com/hedera-stats/introduction)** provides quantitative statistical measurements for the Hedera network, leveraging open-source methodologies, Hedera mirror node data, third-party data sources, and Hgraph's GraphQL API. These statistics include network performance metrics, NFT analytics, account activities, and economic indicators, enabling transparent and consistent analysis of the Hedera ecosystem.
+**[Hedera Stats](https://docs.hgraph.com/hedera-stats/introduction)** is a PostgreSQL-based analytics platform that provides quantitative statistical measurements for the Hedera network. The platform calculates and stores metrics using SQL functions and procedures, leveraging open-source methodologies, Hedera mirror node data, third-party data sources, and Hgraph's GraphQL API. These statistics include network performance metrics, NFT analytics, account activities, and economic indicators, enabling transparent and consistent analysis of the Hedera ecosystem.
+
+All metrics are pre-computed and stored in the `ecosystem.metric` table, with automated updates via pg_cron and visualization through Grafana dashboards.
 
 **[📖 View Full Documentation →](https://docs.hgraph.com/category/hedera-stats)**
 
@@ -8,12 +10,15 @@
 
 ### Prerequisites
 
+- **PostgreSQL database** (v14+) with the following extensions:
+  - **pg_http** - For external API calls (HBAR price data, etc.)
+  - **pg_cron** - For automated metric updates (requires superuser privileges)
+  - **timestamp9** - For Hedera's nanosecond precision timestamps
 - **Hedera Mirror Node** or access to **Hgraph's GraphQL API**
   - [Create a free account](https://hgraph.com/hedera)
 - **Prometheus** (`promtool`) for `avg_time_to_consensus` ([view docs](https://prometheus.io/docs/introduction/overview/))
-- **PostgreSQL database** needed for SQL script execution ([view docs](https://www.postgresql.org/docs/current/))
-- **DeFiLlama API** for decentralized finance metrics ([view docs](https://defillama.com/docs/api)).
-- **pg_http** PostgreSQL extension is required for `avg_usd_conversion.sql` to fetch HBAR price data.
+- **DeFiLlama API** for decentralized finance metrics ([view docs](https://defillama.com/docs/api))
+- **Grafana** (optional) for visualization dashboards
 
 ### Installation
 
@@ -37,8 +42,16 @@ cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 
 Set up your database:
 
-- Execute `src/up.sql` to create necessary database schema and tables.
-- Load initial data using SQL scripts from the `src/jobs` directory.
+1. **Create schema and tables**:
+   ```sql
+   -- Execute the setup script
+   psql -d your_database -f src/setup/up.sql
+   ```
+
+2. **Load metric functions and procedures**:
+   - Execute SQL scripts from `src/metrics/` directories
+   - Load job procedures from `src/jobs/procedures/`
+   - Initialize metric descriptions from `src/metric_descriptions.sql`
 
 Configure environment variables (example `.env`):
 
@@ -47,31 +60,52 @@ DATABASE_URL="postgresql://user:password@localhost:5432/hedera_stats"
 HGRAPH_API_KEY="your_api_key"
 ```
 
-Schedule incremental updates:
+Schedule automated updates:
 
-```bash
-crontab -e
-1 * * * * cd /path/to/hedera-stats/src/time-to-consensus && bash ./run.sh >> ./.raw/cron.log 2>&1
-```
+1. **pg_cron for metric updates**:
+   ```sql
+   -- Edit src/jobs/pg_cron_metrics.sql
+   -- Replace <database_name> and <database_user> placeholders
+   psql -d your_database -f src/jobs/pg_cron_metrics.sql
+   ```
 
-The script `src/v2/jobs/pg_cron_metrics.sql` schedules metric loaders using the
-[pg_cron](https://github.com/citusdata/pg_cron) extension. Replace the
-`<database_name>` and `<database_user>` placeholders in that file with the name
-of your database and an authorized user before running the script.
+2. **Time-to-consensus updates** (if using Prometheus):
+   ```bash
+   crontab -e
+   1 * * * * cd /path/to/hedera-stats/src/time-to-consensus && bash ./run.sh >> ./.raw/cron.log 2>&1
+   ```
 
 ## Repository Structure
 
 ```markdown
 hedera-stats/
 ├── src/
-│   ├── dashboard/             # SQL for Grafana dashboards & Grafana template
-│   ├── helpers/               # Helper SQL functions
-│   ├── jobs/                  # Incremental data update scripts
-│   ├── metrics/               # SQL queries for metrics
-│   └── setup/                 # Initial database schema setup script
+│   ├── dashboard/             # Grafana dashboards and SQL queries
+│   ├── jobs/                  # Automated data loading and scheduling
+│   ├── metrics/               # Metric calculation SQL functions
+│   ├── setup/                 # Database schema setup
+│   └── time-to-consensus/     # Consensus time metrics ETL
+├── CLAUDE.md                  # AI assistant guidance
 ├── LICENSE
 └── README.md
 ```
+
+## Architecture
+
+### Core Data Model
+
+- **ecosystem.metric** - Central table storing all calculated metrics with time ranges
+- **ecosystem.metric_total** - Standard return type for metric functions: (metric_timestamp, metric_value, metric_metadata)
+- **ecosystem.metric_description** - Metadata and descriptions for each metric
+
+### Data Processing Pipeline
+
+1. **External Data Sources** → PostgreSQL via pg_http or mirror node tables
+2. **Metric Functions** → Calculate metrics using SQL/PL/pgSQL
+3. **Job Procedures** → Orchestrate metric loading via stored procedures
+4. **pg_cron Jobs** → Automate execution on schedule
+5. **ecosystem.metric table** → Store pre-computed results
+6. **Grafana Dashboards** → Visualize metrics via SQL queries
 
 ## Available Metrics & Usage
 
@@ -82,6 +116,27 @@ Metrics categories include:
 - Network Performance & Economic Metrics
 
 [**View all metrics & documentation →**](https://docs.hgraph.com/category/hedera-stats)
+
+### Usage Example: Query Pre-Computed Metrics
+
+```sql
+-- Query the pre-computed metrics from ecosystem.metric table
+SELECT *
+FROM ecosystem.metric
+WHERE name = '<metric_name>'
+ORDER BY timestamp_range DESC
+LIMIT 20;
+```
+
+### Usage Example: Test Metric Functions
+
+```sql
+-- Test a metric function directly
+SELECT * FROM ecosystem.metric_activity_active_accounts('mainnet', 'hour');
+
+-- Check job status
+SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
+```
 
 ### Usage Example: Custom Grafana Dashboard
 
