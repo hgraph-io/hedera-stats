@@ -2,9 +2,9 @@ CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_big_1()
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    periods CONSTANT text[] := array['day'];
+    periods CONSTANT text[] := array['week'];
     metrics CONSTANT text[] := array[
-        'total_transactions'
+        'new_transactions'
     ];
     current_period TEXT;
     metric TEXT;
