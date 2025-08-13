@@ -1,8 +1,8 @@
-CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_hour()
+CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_big_1()
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    periods CONSTANT text[] := array['hour'];
+    periods CONSTANT text[] := array['day'];
     metrics CONSTANT text[] := array[
         'new_transactions'
     ];
