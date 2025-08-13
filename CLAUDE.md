@@ -31,11 +31,26 @@ LIMIT 20;
 
 ### Testing Metric Functions
 ```sql
--- Test a metric function
+-- Test a metric function with standard signature
 SELECT * FROM ecosystem.metric_<category>_<name>('<network>', '<time_range>');
 
 -- Example:
 SELECT * FROM ecosystem.metric_activity_active_accounts('mainnet', 'hour');
+
+-- Test functions that return ecosystem.metric_total type
+-- (Note: These use different parameters than standard metrics)
+SELECT * FROM ecosystem.total_ecdsa_accounts_real_evm(
+    'day',  -- period: hour, day, week, month, quarter, year
+    (current_timestamp - interval '30 days')::timestamp9::bigint,  -- start_timestamp
+    current_timestamp::timestamp9::bigint  -- end_timestamp
+);
+
+-- Example testing new account metrics
+SELECT * FROM ecosystem.new_ecdsa_accounts_real_evm(
+    'week',
+    (current_timestamp - interval '3 months')::timestamp9::bigint,
+    current_timestamp::timestamp9::bigint
+);
 ```
 
 ### Checking Job Status
@@ -57,10 +72,13 @@ LIMIT 5;
 
 ### Core Data Model
 - **ecosystem.metric** - Central table storing all calculated metrics with time ranges
-- **ecosystem.metric_total** - Standard return type for metric functions: (metric_timestamp, metric_value, metric_metadata)
+- **ecosystem.metric_total** - Standard return type for metric functions: (int8range, total)
+  - `int8range`: PostgreSQL range type for timestamp boundaries
+  - `total`: Bigint value representing the metric count/value
 - **ecosystem.metric_description** - Metadata and descriptions for each metric
 
 ### Metric Function Pattern
+
 All metric functions follow this signature:
 ```sql
 CREATE OR REPLACE FUNCTION ecosystem.metric_<category>_<name>(
@@ -70,6 +88,7 @@ CREATE OR REPLACE FUNCTION ecosystem.metric_<category>_<name>(
 ```
 
 ### Data Processing Pipeline
+
 1. **External Data Sources** → PostgreSQL via pg_http or mirror node tables
 2. **Metric Functions** → Calculate metrics using SQL/PL/pgSQL
 3. **Job Procedures** → Orchestrate metric loading via stored procedures
@@ -78,6 +97,7 @@ CREATE OR REPLACE FUNCTION ecosystem.metric_<category>_<name>(
 6. **Grafana Dashboards** → Visualize metrics via SQL queries
 
 ### Key Directories
+
 - `src/metrics/` - Metric calculation functions organized by category
 - `src/jobs/` - Automated loading procedures and cron job definitions
 - `src/dashboard/` - Grafana dashboard configurations and queries
@@ -86,6 +106,7 @@ CREATE OR REPLACE FUNCTION ecosystem.metric_<category>_<name>(
 ## Development Workflow
 
 ### Adding New Metrics
+
 1. Create function in appropriate `src/metrics/<category>/` directory
 2. Add description to `src/metric_descriptions.sql`
 3. Update job procedure in `src/jobs/procedures/` to call new function
@@ -94,6 +115,7 @@ CREATE OR REPLACE FUNCTION ecosystem.metric_<category>_<name>(
 6. Verify data is stored: `SELECT * FROM ecosystem.metric WHERE name = '<metric_name>' ORDER BY timestamp_range DESC LIMIT 5`
 
 ### SQL Development Guidelines
+
 - Generate complete SQL functions with proper error handling
 - Use JSONB for metadata storage in metric_metadata field
 - Follow existing naming conventions: `metric_<category>_<name>`

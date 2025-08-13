@@ -19,6 +19,7 @@ declare
         'active_accounts',
         'active_ecdsa_accounts',
         'active_ed25519_accounts',
+        'new_ecdsa_accounts_real_evm', -- need to add additional account metrics new/total
         'new_hfs_transactions',
         'new_hscs_transactions',
         'new_hts_transactions',

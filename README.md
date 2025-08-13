@@ -95,7 +95,9 @@ hedera-stats/
 ### Core Data Model
 
 - **ecosystem.metric** - Central table storing all calculated metrics with time ranges
-- **ecosystem.metric_total** - Standard return type for metric functions: (metric_timestamp, metric_value, metric_metadata)
+- **ecosystem.metric_total** - Standard return type for metric functions: (int8range, total)
+  - `int8range`: PostgreSQL range type for timestamp boundaries
+  - `total`: Bigint value representing the metric count/value
 - **ecosystem.metric_description** - Metadata and descriptions for each metric
 
 ### Data Processing Pipeline
