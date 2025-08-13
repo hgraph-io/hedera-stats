@@ -20,18 +20,14 @@ declare
         'network_tps',
         'new_accounts',
         'new_ecdsa_accounts',
+        'new_ecdsa_accounts_real_evm',
         'new_ed25519_accounts',
         'new_smart_contracts',
         'new_hfs_transactions',
         'new_hscs_transactions',
         'new_hts_transactions',
         'new_crypto_transactions',
-        'new_other_transactions',
-        'total_hfs_transactions',
-        'total_hscs_transactions',
-        'total_hts_transactions',
-        -- 'total_crypto_transactions', (big)
-        'total_other_transactions'
+        'new_other_transactions'
     ];                                             -- Metrics (functions for this job)
     current_period text;
     metric text;

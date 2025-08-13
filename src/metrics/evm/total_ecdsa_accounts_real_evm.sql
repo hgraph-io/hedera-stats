@@ -25,6 +25,7 @@ with base_total as (
              || lpad(to_hex(num),   16, '0')
       and created_timestamp < start_timestamp
     order by num, created_timestamp
+    
   ) t
 ),
 all_entries as (
