@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_big_1()
+CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_big_3()
 LANGUAGE plpgsql
 AS $$
 DECLARE
