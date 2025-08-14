@@ -13,6 +13,7 @@ Hedera Stats is a PostgreSQL-based analytics platform for the Hedera network tha
 ## Common SQL Patterns to Generate
 
 ### Querying Pre-Computed Metrics
+
 ```sql
 -- Query the pre-computed metrics from ecosystem.metric table
 SELECT *
@@ -30,6 +31,7 @@ LIMIT 20;
 ```
 
 ### Testing Metric Functions
+
 ```sql
 -- Test a metric function with standard signature
 SELECT * FROM ecosystem.metric_<category>_<name>('<network>', '<time_range>');
@@ -54,23 +56,25 @@ SELECT * FROM ecosystem.new_ecdsa_accounts_real_evm(
 ```
 
 ### Checking Job Status
+
 ```sql
 -- View recent cron job runs
 SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
 
 -- Check specific metric data with filters
-SELECT * 
-FROM ecosystem.metric 
-WHERE name = '<metric_name>' 
+SELECT *
+FROM ecosystem.metric
+WHERE name = '<metric_name>'
   AND time_range = '<time_range>'
   AND network = '<network>'
-ORDER BY timestamp_range DESC 
+ORDER BY timestamp_range DESC
 LIMIT 5;
 ```
 
 ## Architecture
 
 ### Core Data Model
+
 - **ecosystem.metric** - Central table storing all calculated metrics with time ranges
 - **ecosystem.metric_total** - Standard return type for metric functions: (int8range, total)
   - `int8range`: PostgreSQL range type for timestamp boundaries
@@ -80,6 +84,7 @@ LIMIT 5;
 ### Metric Function Pattern
 
 All metric functions follow this signature:
+
 ```sql
 CREATE OR REPLACE FUNCTION ecosystem.metric_<category>_<name>(
     <network> TEXT,
@@ -113,6 +118,36 @@ CREATE OR REPLACE FUNCTION ecosystem.metric_<category>_<name>(
 4. Ask user to test: `SELECT * FROM ecosystem.metric_<category>_<name>('mainnet', 'hour')`
 5. Schedule in `src/jobs/pg_cron_metrics.sql` if needed
 6. Verify data is stored: `SELECT * FROM ecosystem.metric WHERE name = '<metric_name>' ORDER BY timestamp_range DESC LIMIT 5`
+7. **Update CHANGELOG.md** with the new metric under the "Unreleased" section
+
+### Maintaining the Changelog
+
+**IMPORTANT**: Always update CHANGELOG.md when making significant changes to the repository.
+
+When making changes:
+
+1. Add entries to the "Unreleased" section at the top of CHANGELOG.md
+2. Categorize changes as:
+   - **Added** - New features, metrics, or functionality
+   - **Changed** - Changes to existing functionality
+   - **Fixed** - Bug fixes
+   - **Removed** - Removed features or functionality
+3. Include PR numbers when available (e.g., #51)
+4. Keep descriptions concise but informative
+5. When working on multiple related changes, group them logically
+
+Example changelog entry:
+
+```markdown
+### Added
+
+- New metric for tracking smart contract deployments (#123)
+- ECDSA account validation function for mainnet
+
+### Fixed
+
+- Corrected timestamp calculation in hourly metrics loader
+```
 
 ### SQL Development Guidelines
 
