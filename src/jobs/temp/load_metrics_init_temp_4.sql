@@ -2,7 +2,7 @@ CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_temp_4()
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    periods CONSTANT text[] := array['week'];
+    periods CONSTANT text[] := array['quarter'];
     metrics CONSTANT text[] := array[
         'new_transactions'
     ];

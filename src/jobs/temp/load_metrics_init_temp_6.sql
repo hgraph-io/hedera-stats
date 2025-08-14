@@ -1,8 +1,8 @@
-CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_temp_3()
+CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_temp_6()
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    periods CONSTANT text[] := array['month'];
+    periods CONSTANT text[] := array['year'];
     metrics CONSTANT text[] := array[
         'new_transactions'
     ];
