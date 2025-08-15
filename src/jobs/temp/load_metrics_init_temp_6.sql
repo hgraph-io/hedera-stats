@@ -2,9 +2,9 @@ CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_temp_6()
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    periods CONSTANT text[] := array['year'];
+    periods CONSTANT text[] := array['hour'];
     metrics CONSTANT text[] := array[
-        'new_transactions'
+        'new_hcs_transactions'
     ];
     current_period TEXT;
     metric TEXT;

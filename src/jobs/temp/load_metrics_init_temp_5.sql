@@ -4,7 +4,7 @@ AS $$
 DECLARE
     periods CONSTANT text[] := array['year'];
     metrics CONSTANT text[] := array[
-        'total_transactions'
+        'total_hcs_transactions'
     ];
     current_period TEXT;
     metric TEXT;

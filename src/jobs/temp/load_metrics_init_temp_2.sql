@@ -2,9 +2,9 @@ CREATE OR REPLACE PROCEDURE ecosystem.load_metrics_init_temp_2()
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    periods CONSTANT text[] := array['quarter'];
+    periods CONSTANT text[] := array['week'];
     metrics CONSTANT text[] := array[
-        'total_transactions'
+        'total_hcs_transactions'
     ];
     current_period TEXT;
     metric TEXT;
