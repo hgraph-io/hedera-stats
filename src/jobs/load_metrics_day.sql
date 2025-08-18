@@ -27,6 +27,8 @@ declare
         'new_ecdsa_accounts_real_evm',
         'new_ed25519_accounts',
         'new_smart_contracts',
+        'new_transactions',
+        'new_hcs_transactions',
         'new_hfs_transactions',
         'new_hscs_transactions',
         'new_hts_transactions',
