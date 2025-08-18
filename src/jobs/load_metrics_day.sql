@@ -34,6 +34,9 @@ declare
         'new_hts_transactions',
         'new_crypto_transactions',
         'new_other_transactions',
+        'total_transactions', -- light
+        'total_hcs_transactions', -- light
+        'total_crypto_transactions', -- light
         'total_hfs_transactions',
         'total_hscs_transactions',
         'total_hts_transactions',

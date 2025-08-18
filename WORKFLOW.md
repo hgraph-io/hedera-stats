@@ -93,7 +93,7 @@ _This step focuses on testing the functions and procedures._
    CALL ecosystem.load_metrics_<period>();
    
    -- For backfilling/new metrics
-   CALL ecosystem.load_metrics_init_temp_6();
+   CALL ecosystem.load_metrics_init();
    ```
 
 5. Monitor outputs and allow the functions to run, populating the tables as needed.
