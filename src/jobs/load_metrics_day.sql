@@ -40,7 +40,6 @@ declare
         'total_hfs_transactions',
         'total_hscs_transactions',
         'total_hts_transactions',
-        'total_crypto_transactions',
         'total_other_transactions'
     ];                                            -- Metrics (functions for this job)
     current_period text;
