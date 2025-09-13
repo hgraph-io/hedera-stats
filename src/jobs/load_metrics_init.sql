@@ -9,7 +9,9 @@ as $$
 declare
     periods constant text[] := array['day', 'week', 'month'];      -- Hour (the period for this job)
     metrics constant text[] := array[
-        'new_crypto_transactions'
+          'new_hfs_transactions',
+          'new_transactions',
+          'new_hcs_transactions'
     ];                                             -- Metrics (functions for this job)
     current_period text;
     metric text;
