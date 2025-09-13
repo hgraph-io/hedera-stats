@@ -32,7 +32,7 @@ SELECT int8range(
          (extract(epoch FROM period_start) * 1e9)::BIGINT,
          COALESCE(
            (extract(epoch FROM LEAD(period_start) OVER (ORDER BY period_start)) * 1e9)::BIGINT,
-           end_timestamp + 1
+           end_timestamp
          )
        ) AS int8range,
        total
