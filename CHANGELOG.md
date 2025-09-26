@@ -2,10 +2,11 @@
 
 All notable changes to the Hedera Stats project since August 1, 2024.
 
-## [Unreleased] - 2025-08-14
+## [Unreleased] - 2025-09-26
 
 ### Added
 
+- HBAR total supply metric (50 billion constant) in hbar-defi category
 - ECDSA accounts with real EVM addresses metric (#51)
 - New folder structure for better organization (#52)
 - Transaction metrics with simplified categorization (#47)
