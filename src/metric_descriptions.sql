@@ -1,6 +1,7 @@
 insert into ecosystem.metric_description (name, description, methodology)
 values
     -- HBAR & DeFi
+    ('hbar_total_supply', 'The total supply of HBAR tokens pre-minted at network genesis (50 billion HBAR).', 'Fixed supply of 50 billion HBAR (5,000,000,000,000,000,000 tinybars) as defined in the Hedera protocol. This value is hardcoded in the Mirror Node and cannot change without unanimous consent of the Hedera Council. Note: Summing all entity balances yields 49,999,943,600 HBAR due to 56,400 HBAR existing at protocol level outside any account.'),
     ('avg_usd_conversion', 'Aggregates the latest price of HBAR from multiple sources, making it crucial for real-time tracking and analyzing price trends.', 'The average of candlestick closing prices for a given period for the HBAR/USDT pair on the five major exchanges by trading volume (Binance, Bybit, OKX, Bitget and MEXC) was calculated. The price is multiplied by 10,000 for integer representation for each time period.'),
     ('network_tvl', 'Total Value Locked (TVL) represents the total amount of assets locked within decentralized finance (DeFi) protocols on the Hedera network, as reported by DeFi Llama.', 'Uses data from the DeFiLlama API to record the total USD value locked in Hedera DeFi protocols each day.'),
     ('stablecoin_marketcap', 'Tracks the market capitalization of stablecoins circulating on the Hedera network as reported by DeFiLlama.', 'Fetches stablecoin circulation data from DeFiLlama and uses the peggedUSD value to record the stablecoin market cap (USD) for each day.'),
