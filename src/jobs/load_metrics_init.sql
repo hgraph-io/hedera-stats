@@ -9,6 +9,7 @@ as $$
 declare
     periods constant text[] := array['day', 'week', 'month'];      -- Hour (the period for this job)
     metrics constant text[] := array[
+          'hbar_total_released',
           'new_hfs_transactions',
           'new_transactions',
           'new_hcs_transactions'
