@@ -11,7 +11,7 @@
 --           The missing amount appears to exist at protocol level, outside any account
 --
 -- Implementation:
---   - Creates 6 rows (one per time period) for user query flexibility
+--   - Creates 7 rows (one per time period) for user query flexibility
 --   - Users can query with any period (minute, hour, day, week, month, year)
 --   - Ideally users do not use a period when querying
 --   - Timestamp range represents validity period (genesis to future date)
