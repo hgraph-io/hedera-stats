@@ -7,12 +7,9 @@ create or replace procedure ecosystem.load_metrics_init()
 language plpgsql
 as $$
 declare
-    periods constant text[] := array['day', 'week', 'month'];      -- Hour (the period for this job)
+    periods constant text[] := array['day', 'week', 'month', 'quarter', 'year'];      -- Hour (the period for this job)
     metrics constant text[] := array[
-          'hbar_total_released',
-          'new_hfs_transactions',
-          'new_transactions',
-          'new_hcs_transactions'
+          'hbar_total_released'
     ];                                             -- Metrics (functions for this job)
     current_period text;
     metric text;

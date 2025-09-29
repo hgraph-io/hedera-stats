@@ -85,20 +85,3 @@ select
 from cumulative_released
 order by period_start;
 $$;
-
--- =====================================================
--- Test Query
--- =====================================================
--- To verify the function and get current released supply:
---
--- SELECT
---     timestamp_range,
---     total as released_supply_tinybars,
---     total / 100000000.0 as released_supply_hbar
--- FROM ecosystem.hbar_total_released('day', 0, current_timestamp::timestamp9::bigint)
--- ORDER BY timestamp_range DESC
--- LIMIT 10;
---
--- Expected first hour (Sept 13, 2019 22:00 UTC): ~3,518,715,337.83 HBAR already released
--- Values increase over time as treasury distributes HBAR
--- =====================================================
