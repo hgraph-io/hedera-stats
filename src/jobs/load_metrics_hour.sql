@@ -10,6 +10,8 @@ declare
     periods constant text[] := array['hour'];      -- Hour (the period for this job)
     metrics constant text[] := array[
         'avg_usd_conversion',
+        'hbar_total_released',
+        'hbar_market_cap',
         'active_developer_accounts',
         'active_retail_accounts',
         'active_smart_contracts',

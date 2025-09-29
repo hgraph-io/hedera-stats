@@ -15,6 +15,7 @@ declare
         'total_smart_contracts',
         'hbar_total_released',
         'avg_usd_conversion',
+        'hbar_market_cap',
         'active_developer_accounts',
         'active_retail_accounts',
         'active_smart_contracts',
