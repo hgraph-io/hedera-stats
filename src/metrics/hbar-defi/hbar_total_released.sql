@@ -5,13 +5,15 @@
 --
 -- Context:
 --   - Total supply: 50 billion HBAR (5,000,000,000,000,000,000 tinybars)
---     Pre-minted at network genesis (Sept 16, 2019)
---   - Released supply: Total supply minus unreleased treasury balances
+--     Pre-minted at network genesis (Aug 24, 2018)
+--   - Mirror node data begins: Sept 13, 2019 22:00 UTC with ~3.52B HBAR already released
+--   - Released supply: Pre-mirror distributions plus net treasury flows since Sept 2019
 --   - Tracks cumulative net flows from 548 designated treasury/system accounts
 --
 -- Implementation:
---   - Uses crypto_transfer table to track all treasury flows from genesis
---   - Negative amounts in crypto_transfer = outflows from treasury = releases
+--   - Uses crypto_transfer table to track treasury flows from Sept 13, 2019 22:00 UTC
+--   - Formula: Released Supply = Calibration Constant - Cumulative Treasury Flows
+--   - Negative amounts in crypto_transfer = outflows from treasury = increases released
 --   - Positive amounts in crypto_transfer = inflows to treasury = reduces released
 --   - Returns value in tinybars (1 HBAR = 100,000,000 tinybars)
 --
@@ -27,6 +29,13 @@
 -- Usage:
 --   Called by job procedures (daily, weekly, monthly, etc.)
 --   Results stored in ecosystem.metric table
+-- Flow:
+-- Step 1: Calculate net flows from ALL treasury accounts per period
+--      Flows are aggregated by period (day, week, month, etc.)
+-- Step 2: Calculate cumulative released supply over time
+--      Starting with calibration constant (~3.52B HBAR pre-mirror), subtract cumulative flows
+--      Subtracting negative outflows increases released, subtracting positive inflows decreases it
+-- Step 3: Format results with proper timestamp ranges
 -- =====================================================
 
 create or replace function ecosystem.hbar_total_released(
@@ -38,12 +47,10 @@ returns setof ecosystem.metric_total
 language sql stable
 as $$
 with
--- Step 1: Calculate net flows from ALL treasury accounts per period
--- Flows are aggregated by period (day, week, month, etc.)
 treasury_flows as (
     select
         date_trunc(period, consensus_timestamp::timestamp9::timestamp) as period_start,
-        sum(amount) as period_flow  -- Negative = outflow (release), Positive = inflow
+        coalesce(sum(amount), 0) as period_flow  -- Negative = outflow (release), Positive = inflow
     from crypto_transfer
     where consensus_timestamp between start_timestamp and end_timestamp
         and (
@@ -58,23 +65,21 @@ treasury_flows as (
         )
     group by period_start
 ),
--- Step 2: Calculate cumulative released supply over time
--- Starting with 50B HBAR total supply, add cumulative treasury flows
--- Outflows (negative) increase released supply, inflows (positive) decrease it
 cumulative_released as (
     select
         period_start,
-        -- Total supply + cumulative flows (outflows are negative, so they increase released)
-        5000000000000000000 + sum(sum(period_flow)) over (order by period_start) as total
+        -- Calibration constant (351871530222399283) minus cumulative flows - accounts for ~3.52B HBAR distributed before mirror node
+        351871530222399283 - sum(period_flow) over (order by period_start) as total
     from treasury_flows
-    group by period_start
     order by period_start
 )
--- Step 3: Format results with proper timestamp ranges
 select
     int8range(
         period_start::timestamp9::bigint,
-        lead(period_start) over (order by period_start)::timestamp9::bigint
+        coalesce(
+            lead(period_start) over (order by period_start)::timestamp9::bigint,
+            end_timestamp + 1  -- Add 1 nanosecond to ensure inclusive range for last period
+        )
     ) as timestamp_range,
     total
 from cumulative_released
@@ -94,6 +99,6 @@ $$;
 -- ORDER BY timestamp_range DESC
 -- LIMIT 10;
 --
--- Expected current result: ~42,392,926,543.50 HBAR released
--- Expected at genesis: ~46,949,066,102 HBAR released (initial distribution)
+-- Expected first hour (Sept 13, 2019 22:00 UTC): ~3,518,715,337.83 HBAR already released
+-- Values increase over time as treasury distributes HBAR
 -- =====================================================
