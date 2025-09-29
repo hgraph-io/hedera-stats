@@ -2,16 +2,18 @@
 
 All notable changes to the Hedera Stats project since August 1, 2024.
 
-## [Unreleased] - 2025-09-26
+## [Unreleased] - 2025-09-29
 
 ### Added
 
+- HBAR market cap metric that calculates market capitalization by multiplying price by circulating supply (#59)
 - HBAR total supply metric (50 billion constant) in hbar-defi category
 - ECDSA accounts with real EVM addresses metric (#51)
 - New folder structure for better organization (#52)
 - Transaction metrics with simplified categorization (#47)
 - Total ECDSA accounts metric functions
 - New initialization functions for metrics
+- Hourly support for hbar_total_released and hbar_market_cap metrics
 
 ### Changed
 
