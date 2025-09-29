@@ -1,5 +1,5 @@
 ----------------------------------------------------
--- LOAD METRICS HOUR / HEDERASTATS.com / HGRAPH.com
+-- LOAD METRICS INIT / HEDERASTATS.com / HGRAPH.com
 -- Automates upsert of metrics into ecosystem.metric
 ----------------------------------------------------
 
@@ -7,7 +7,7 @@ create or replace procedure ecosystem.load_metrics_init()
 language plpgsql
 as $$
 declare
-    periods constant text[] := array['hour', 'day', 'week', 'month', 'quarter', 'year'];      -- Hour (the period for this job)
+    periods constant text[] := array['hour', 'day', 'week', 'month', 'quarter', 'year'];      -- All periods (for initialization)
     metrics constant text[] := array[
           'hbar_total_released',
           'hbar_market_cap'
