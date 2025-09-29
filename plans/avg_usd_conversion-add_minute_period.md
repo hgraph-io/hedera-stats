@@ -1,5 +1,7 @@
 # Plan — Add `minute` Period to `avg_usd_conversion`
 
+**Status: COMPLETED**
+
 ## Objective
 
 Add a **`minute`** period for `avg_usd_conversion`, loaded **every minute** via `pg_cron`. Keep only the **last 72 hours** of `minute` rows, trimming older data on each run. Provide a lightweight backfill that seeds up to 72 hours of history using the existing init pattern.
@@ -251,3 +253,23 @@ drop procedure if exists ecosystem.load_metrics_minute();
 -- or delete data if needed:
 delete from ecosystem.metric where name = 'avg_usd_conversion' and period = 'minute';
 ```
+
+---
+
+## Completion Notes
+
+### API Limits Verification
+- All exchange API limits verified and documented
+- OKX's 100-candle limit is the constraining factor
+- Backfill script adjusted to use 100-minute chunks
+
+### Actual Usage Impact
+- **Per Day**: 7,200 API calls (1,440 minutes × 5 exchanges)
+- **Per Month**: ~216,000 API calls
+- **Risk Assessment**: Very low - well within public endpoint limits
+- **Ongoing Impact**: Negligible - only 1-2 new candles per minute after backfill
+
+### Implementation Verified
+- All files created and tested for correctness
+- Follows repository patterns exactly
+- PR #61 created with comprehensive documentation
