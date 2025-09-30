@@ -54,16 +54,6 @@ begin
 
                 raise info '  -> Starting at timestamp: % (%)', starting_timestamp, starting_timestamp::timestamp9::timestamp;
 
-                -- Log the SQL we're about to execute
-                raise info 'Executing SQL: %', format(
-                    'insert into ecosystem.metric (name, period, timestamp_range, total)
-                     select %L as name, %L as period, int8range as timestamp_range, total
-                     from ecosystem.%I(%L::text, %L::bigint, %L::bigint)
-                     where upper(int8range) is not null
-                     on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total',
-                    metric, current_period, metric, current_period, starting_timestamp, end_timestamp_bigint
-                );
-
                 -- Dynamically call the correct function, safely, for this metric/period/timestamp
                 execute format(
                     'insert into ecosystem.metric (name, period, timestamp_range, total)
