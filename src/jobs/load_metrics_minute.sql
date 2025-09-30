@@ -57,18 +57,11 @@ begin
                 -- Dynamically call the correct function, safely, for this metric/period/timestamp
                 execute format(
                     'insert into ecosystem.metric (name, period, timestamp_range, total)
-                     select %L as name, %L as period,
-                            -- Convert unbounded ranges to bounded ones for the current minute
-                            case when upper(int8range) is null
-                                 then int8range(lower(int8range), lower(int8range) + 60000000000)
-                                 else int8range
-                            end as timestamp_range,
-                            total
+                     select %L as name, %L as period, int8range as timestamp_range, total
                      from ecosystem.%I(%L::text, %L::bigint, %L::bigint)
-                     where int8range is not null
+                     where upper(int8range) is not null
                      on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total',
-                    metric, current_period,
-                    metric, current_period, starting_timestamp, end_timestamp_bigint
+                    metric, current_period, metric, current_period, starting_timestamp, end_timestamp_bigint
                 );
 
                 processed_metrics := processed_metrics + 1;
