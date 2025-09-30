@@ -6,6 +6,9 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Added
 
+- Minute period support for avg_usd_conversion metric with 72-hour retention
+- Load metrics minute procedure for high-frequency price updates
+- Init script for backfilling minute-level price data
 - HBAR market cap metric that calculates market capitalization by multiplying price by circulating supply (#59)
 - HBAR total supply metric (50 billion constant) in hbar-defi category
 - ECDSA accounts with real EVM addresses metric (#51)

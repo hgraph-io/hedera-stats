@@ -5,6 +5,15 @@
 
 -- Replace <database_name> with "hedera_mainnet" or "hedera_testnet"
 
+-- EVERY 1 MINUTE 
+
+SELECT
+  cron.schedule_in_database(
+    'ecosystem_load_metrics_minute',
+    '* * * * *',                             -- every minute
+    'call ecosystem.load_metrics_minute()',
+    '<database_name>'
+  );
 
 -- EVERY 1 HOUR
 
@@ -77,11 +86,11 @@ SELECT
 
 -- EVERY 1 YEAR
 
-SELECT 
+SELECT
   cron.schedule_in_database(
-    'ecosystem_load_metrics_year', 
+    'ecosystem_load_metrics_year',
     -- Yearly at 12:14am UTC on January 1st
-    '14 0 1 1 *', 
-    'call ecosystem.load_metrics_year()', 
+    '14 0 1 1 *',
+    'call ecosystem.load_metrics_year()',
     '<database_name>'
   );
