@@ -68,8 +68,8 @@ begin
 
                 -- Retention: delete minute data older than 72 hours
                 DELETE FROM ecosystem.metric
-                WHERE name = metric
-                  AND period = current_period
+                WHERE name = load_metrics_minute.metric
+                  AND period = load_metrics_minute.current_period
                   AND upper(timestamp_range) < (date_trunc('minute', now() - interval '72 hours'))::timestamp9::bigint;
 
                 raise info '    [Done] metric %, period %, elapsed: %',
@@ -81,9 +81,10 @@ begin
                     'metric', metric,
                     'period', current_period,
                     'error', sqlerrm,
+                    'sqlstate', SQLSTATE,
                     'at', now()
                 );
-                raise warning 'Failed to process metric %, period %: %', metric, current_period, sqlerrm;
+                raise warning 'Failed to process metric %, period %: % (SQLSTATE: %)', metric, current_period, sqlerrm, SQLSTATE;
                 continue;  -- Proceed to next metric/period
             end;
         end loop;
