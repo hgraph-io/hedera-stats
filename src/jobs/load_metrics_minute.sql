@@ -52,7 +52,17 @@ begin
                     current_period, metric
                 ) into starting_timestamp;
 
-                raise info '  -> Starting at timestamp: %', starting_timestamp;
+                raise info '  -> Starting at timestamp: % (%)', starting_timestamp, starting_timestamp::timestamp9::timestamp;
+
+                -- Log the SQL we're about to execute
+                raise info 'Executing SQL: %', format(
+                    'insert into ecosystem.metric (name, period, timestamp_range, total)
+                     select %L as name, %L as period, int8range as timestamp_range, total
+                     from ecosystem.%I(%L::text, %L::bigint, %L::bigint)
+                     where upper(int8range) is not null
+                     on conflict (name, period, timestamp_range) do update set total = EXCLUDED.total',
+                    metric, current_period, metric, current_period, starting_timestamp, end_timestamp_bigint
+                );
 
                 -- Dynamically call the correct function, safely, for this metric/period/timestamp
                 execute format(
@@ -68,8 +78,8 @@ begin
 
                 -- Retention: delete minute data older than 72 hours
                 DELETE FROM ecosystem.metric
-                WHERE name = load_metrics_minute.metric
-                  AND period = load_metrics_minute.current_period
+                WHERE name = 'avg_usd_conversion'
+                  AND period = 'minute'
                   AND upper(timestamp_range) < (date_trunc('minute', now() - interval '72 hours'))::timestamp9::bigint;
 
                 raise info '    [Done] metric %, period %, elapsed: %',
