@@ -52,7 +52,7 @@ treasury_flows as (
         date_trunc(period, consensus_timestamp::timestamp9::timestamp) as period_start,
         coalesce(sum(amount), 0) as period_flow  -- Negative = outflow (release), Positive = inflow
     from crypto_transfer
-    where consensus_timestamp between start_timestamp and end_timestamp
+    where consensus_timestamp between 0 and end_timestamp  -- Always calculate from beginning for cumulative accuracy
         and (
             -- All 548 treasury/system accounts
             entity_id = 2                              -- 0.0.2 (Primary Treasury)
@@ -78,10 +78,12 @@ select
         period_start::timestamp9::bigint,
         coalesce(
             lead(period_start) over (order by period_start)::timestamp9::bigint,
-            end_timestamp + 1  -- Add 1 nanosecond to ensure inclusive range for last period
+            end_timestamp  -- Use consistent timestamp boundaries
         )
     ) as timestamp_range,
     total
 from cumulative_released
+where date_trunc(period, period_start::timestamp9::timestamp) >=
+      date_trunc(period, start_timestamp::timestamp9::timestamp)  -- Filter results after calculating full cumulative sum
 order by period_start;
 $$;
