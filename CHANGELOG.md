@@ -6,6 +6,7 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Added
 
+- Daily period support for avg_time_to_consensus metric with automated ETL pipeline
 - Minute period support for avg_usd_conversion metric with 72-hour retention
 - Load metrics minute procedure for high-frequency price updates
 - Init script for backfilling minute-level price data
