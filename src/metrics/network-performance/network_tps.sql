@@ -17,13 +17,21 @@ with transaction_volume as (
 network_tps as (
     select
         period_start_timestamp,
-        total::float / extract(epoch from CAST('1 ' || period AS Interval)) as tps
+        total::float / extract(epoch from CAST('1 ' || 
+            CASE 
+                WHEN period = 'quarter' THEN 'month' 
+                ELSE period 
+            END AS Interval) * 
+            CASE 
+                WHEN period = 'quarter' THEN 3 
+                ELSE 1 
+            END) as tps
     from transaction_volume
 )
 select
     int8range(
         period_start_timestamp::timestamp9::bigint,
-        (lead(period_start_timestamp) over (order by period_start_timestamp rows between current row and 1 following))::timestamp9::bigint
+        coalesce((lead(period_start_timestamp) over (order by period_start_timestamp rows between current row and 1 following))::timestamp9::bigint, end_timestamp)
     ),
     tps::bigint as total
 from network_tps

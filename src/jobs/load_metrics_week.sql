@@ -35,7 +35,8 @@ declare
         'total_hfs_transactions',
         'total_hscs_transactions',
         'total_hts_transactions',
-        'total_other_transactions'
+        'total_other_transactions',
+        'network_tps'
     ];                                             -- Metrics (functions for this job)
     current_period text;
     metric text;
