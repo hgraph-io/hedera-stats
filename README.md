@@ -17,7 +17,7 @@ All metrics are pre-computed and stored in the `ecosystem.metric` table, with au
   - **timestamp9** - For Hedera's nanosecond precision timestamps
 - **Hedera Mirror Node** or access to **Hgraph's GraphQL API**
   - [Create a free account](https://hgraph.com/hedera)
-- **Prometheus** (`promtool`) for `avg_time_to_consensus` ([download](https://prometheus.io/download/))
+- **Prometheus** (`promtool`) for `avg_time_to_consensus` ([view docs](https://prometheus.io/docs/introduction/overview/))
 - **DeFiLlama API** for decentralized finance metrics ([view docs](https://defillama.com/docs/api))
 - **Grafana** (optional) for visualization dashboards
 
@@ -85,7 +85,7 @@ Schedule automated updates:
 1. **pg_cron for metric updates**:
    ```bash
    # Edit src/jobs/pg_cron_metrics.sql
-   # Replace <database_name> with your database name
+   # Replace <database_name> and <database_user> with your database name and database user
    psql -d your_database -f src/jobs/pg_cron_metrics.sql
    ```
 

@@ -22,7 +22,7 @@ All metric functions use this standard signature (note: function names do NOT in
 
 ```sql
 CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(
-    period TEXT,                    -- 'hour', 'day', 'week', 'month', 'quarter', 'year'
+    period TEXT,                    -- 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'
     start_timestamp BIGINT DEFAULT 0,
     end_timestamp BIGINT DEFAULT CURRENT_TIMESTAMP::timestamp9::BIGINT
 ) RETURNS SETOF ecosystem.metric_total
