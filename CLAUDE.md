@@ -6,162 +6,138 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Hedera Stats is a PostgreSQL-based analytics platform for the Hedera network that calculates and stores quantitative metrics using SQL functions and procedures. The project uses Grafana for visualization and pg_cron for automated metric updates.
 
-## Working with this Codebase
-
 **Important**: Claude does not have direct database access. When SQL queries need to be executed or tested, ask the user to run them and provide the results.
-
-## Common SQL Patterns to Generate
-
-### Querying Pre-Computed Metrics
-
-```sql
--- Query the pre-computed metrics from ecosystem.metric table
-SELECT *
-FROM ecosystem.metric
-WHERE name = '<metric_name>'
-ORDER BY timestamp_range DESC
-LIMIT 20;
-
--- Example:
-SELECT *
-FROM ecosystem.metric
-WHERE name = 'new_transactions'
-ORDER BY timestamp_range DESC
-LIMIT 20;
-```
-
-### Testing Metric Functions
-
-```sql
--- Test a metric function with standard signature
-SELECT * FROM ecosystem.metric_<category>_<name>('<network>', '<time_range>');
-
--- Example:
-SELECT * FROM ecosystem.metric_activity_active_accounts('mainnet', 'hour');
-
--- Test functions that return ecosystem.metric_total type
--- (Note: These use different parameters than standard metrics)
-SELECT * FROM ecosystem.total_ecdsa_accounts_real_evm(
-    'day',  -- period: hour, day, week, month, quarter, year
-    (current_timestamp - interval '30 days')::timestamp9::bigint,  -- start_timestamp
-    current_timestamp::timestamp9::bigint  -- end_timestamp
-);
-
--- Example testing new account metrics
-SELECT * FROM ecosystem.new_ecdsa_accounts_real_evm(
-    'week',
-    (current_timestamp - interval '3 months')::timestamp9::bigint,
-    current_timestamp::timestamp9::bigint
-);
-```
-
-### Checking Job Status
-
-```sql
--- View recent cron job runs
-SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
-
--- Check specific metric data with filters
-SELECT *
-FROM ecosystem.metric
-WHERE name = '<metric_name>'
-  AND time_range = '<time_range>'
-  AND network = '<network>'
-ORDER BY timestamp_range DESC
-LIMIT 5;
-```
 
 ## Architecture
 
 ### Core Data Model
 
-- **ecosystem.metric** - Central table storing all calculated metrics with time ranges
-- **ecosystem.metric_total** - Standard return type for metric functions: (int8range, total)
-  - `int8range`: PostgreSQL range type for timestamp boundaries
-  - `total`: Bigint value representing the metric count/value
-- **ecosystem.metric_description** - Metadata and descriptions for each metric
+- **ecosystem.metric** - Central table storing all calculated metrics (columns: name, period, timestamp_range, total)
+- **ecosystem.metric_total** - Return type for metric functions: `(int8range, total bigint)`
+- **ecosystem.metric_description** - Metadata with name, description, and methodology
 
-### Metric Function Pattern
+### Metric Function Signature
 
-All metric functions follow this signature:
+All metric functions use this standard signature (note: function names do NOT include category prefix):
 
 ```sql
-CREATE OR REPLACE FUNCTION ecosystem.metric_<category>_<name>(
-    <network> TEXT,
-    <time_range> TEXT
+CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(
+    period TEXT,                    -- 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year'
+    start_timestamp BIGINT DEFAULT 0,
+    end_timestamp BIGINT DEFAULT CURRENT_TIMESTAMP::timestamp9::BIGINT
 ) RETURNS SETOF ecosystem.metric_total
 ```
 
-### Data Processing Pipeline
+### Job Procedure Pattern
 
-1. **External Data Sources** → PostgreSQL via pg_http or mirror node tables
-2. **Metric Functions** → Calculate metrics using SQL/PL/pgSQL
-3. **Job Procedures** → Orchestrate metric loading via stored procedures
-4. **pg_cron Jobs** → Automate execution on schedule
-5. **ecosystem.metric table** → Store pre-computed results
-6. **Grafana Dashboards** → Visualize metrics via SQL queries
+Load procedures in `src/jobs/load_metrics_<period>.sql` iterate over a metrics array, dynamically calling each function and upserting results into ecosystem.metric. Each period has its own procedure (hour, day, week, month, quarter, year, minute).
 
 ### Key Directories
 
-- `src/metrics/` - Metric calculation functions organized by category
-- `src/jobs/` - Automated loading procedures and cron job definitions
-- `src/dashboard/` - Grafana dashboard configurations and queries
-- `src/time-to-consensus/` - Specialized ETL for consensus time metrics
+```
+src/
+├── metrics/                    # Metric functions by category
+│   ├── activity-engagement/    # active_accounts, new_accounts, total_accounts variants
+│   ├── evm/                    # smart contracts, ECDSA real EVM accounts
+│   ├── hbar-defi/              # price, market cap, supply metrics
+│   ├── network-performance/    # network_fee, network_tps
+│   ├── transactions/           # new_*/total_* transaction counts
+│   └── non-fungible-tokens/    # NFT sales metrics
+├── jobs/                       # Load procedures and pg_cron scheduling
+│   ├── load_metrics_hour.sql   # Hourly loader procedure
+│   ├── load_metrics_day.sql    # Daily loader procedure
+│   └── pg_cron_metrics.sql     # Cron job definitions
+├── grafana/                    # Dashboard configs
+└── time-to-consensus/          # ETL for avg_time_to_consensus (uses Prometheus)
+```
 
 ## Development Workflow
 
-### Adding New Metrics
+### Adding a New Metric
 
-1. Create function in appropriate `src/metrics/<category>/` directory
-2. Add description to `src/metric_descriptions.sql`
-3. Update job procedure in `src/jobs/procedures/` to call new function
-4. Ask user to test: `SELECT * FROM ecosystem.metric_<category>_<name>('mainnet', 'hour')`
-5. Schedule in `src/jobs/pg_cron_metrics.sql` if needed
-6. Verify data is stored: `SELECT * FROM ecosystem.metric WHERE name = '<metric_name>' ORDER BY timestamp_range DESC LIMIT 5`
-7. **Update CHANGELOG.md** with the new metric under the "Unreleased" section
+1. Create function file in `src/metrics/<category>/<metric_name>.sql`
+2. Add entry to `src/metric_descriptions.sql` with name, description, methodology
+3. Add metric name to the `metrics` array in relevant `src/jobs/load_metrics_<period>.sql` procedures
+4. Update `src/jobs/pg_cron_metrics.sql` if scheduling changes needed
+5. Update CHANGELOG.md under "Unreleased" section
 
-### Maintaining the Changelog
+### Testing Metric Functions
 
-**IMPORTANT**: Always update CHANGELOG.md when making significant changes to the repository.
+```sql
+-- Standard test pattern
+SELECT * FROM ecosystem.<metric_name>(
+    'day',
+    (current_timestamp - interval '7 days')::timestamp9::bigint,
+    current_timestamp::timestamp9::bigint
+);
 
-When making changes:
-
-1. Add entries to the "Unreleased" section at the top of CHANGELOG.md
-2. Categorize changes as:
-   - **Added** - New features, metrics, or functionality
-   - **Changed** - Changes to existing functionality
-   - **Fixed** - Bug fixes
-   - **Removed** - Removed features or functionality
-3. Include PR numbers when available (e.g., #51)
-4. Keep descriptions concise but informative
-5. When working on multiple related changes, group them logically
-
-Example changelog entry:
-
-```markdown
-### Added
-
-- New metric for tracking smart contract deployments (#123)
-- ECDSA account validation function for mainnet
-
-### Fixed
-
-- Corrected timestamp calculation in hourly metrics loader
+-- Verify stored data
+SELECT * FROM ecosystem.metric
+WHERE name = '<metric_name>' AND period = 'day'
+ORDER BY timestamp_range DESC LIMIT 10;
 ```
 
-### SQL Development Guidelines
+### Running Load Procedures
 
-- Generate complete SQL functions with proper error handling
-- Use JSONB for metadata storage in metric_metadata field
-- Follow existing naming conventions: `metric_<category>_<name>`
-- Include appropriate time range handling (hour, day, week, month, quarter, year)
-- Use timestamp9 type for Hedera nanosecond precision when needed
+```sql
+-- Run a specific period's loader
+CALL ecosystem.load_metrics_hour();
+CALL ecosystem.load_metrics_day();
+
+-- Backfill/initialize metrics (runs all periods)
+CALL ecosystem.load_metrics_init();
+```
+
+### Debugging Jobs
+
+```sql
+-- View cron job status
+SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
+
+-- Check loaded procedures
+SELECT proname FROM pg_proc WHERE pronamespace = 'ecosystem'::regnamespace;
+
+-- View procedure definition
+SELECT pg_get_functiondef(p.oid) FROM pg_proc p
+JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE n.nspname = 'ecosystem' AND p.proname = '<procedure_name>';
+```
+
+## SQL Patterns
+
+### Timestamp Handling
+
+Hedera uses nanosecond timestamps. Convert using timestamp9 extension:
+```sql
+-- Current time as bigint
+current_timestamp::timestamp9::bigint
+
+-- Bigint to readable timestamp
+(timestamp_value)::timestamp9::timestamp
+
+-- Period truncation
+date_trunc('day', to_timestamp(created_timestamp / 1e9))
+```
+
+### Int8range for Time Intervals
+
+```sql
+INT8RANGE(
+    period_start::timestamp9::bigint,
+    (period_start + INTERVAL '1 day')::timestamp9::bigint
+)
+```
+
+### Cumulative vs Period Metrics
+
+- **new_*** metrics: Count within each period (use `BETWEEN start_timestamp AND end_timestamp`)
+- **total_*** metrics: Cumulative count up to period end (sum of all previous new_* values or direct count to end)
+- **active_*** metrics: Distinct entities active during the period
 
 ## Important Notes
 
-- This is a pure SQL/PostgreSQL project - no npm/Node.js dependencies
-- All business logic is implemented in SQL/PL/pgSQL functions
-- External API calls use pg_http extension within PostgreSQL
-- Timestamp handling uses timestamp9 extension for Hedera's nanosecond precision
-- Job scheduling uses pg_cron extension - requires database superuser privileges
-- When debugging or testing SQL, ask the user to execute queries and provide results
+- Pure SQL/PostgreSQL project - no npm/package.json
+- PostgreSQL extensions required: pg_cron, timestamp9, http (pg_http)
+- Function names use `lowercase_snake_case` without category prefix in the function name itself
+- Always test on testnet before mainnet
+- CHANGELOG.md must be updated for all significant changes
