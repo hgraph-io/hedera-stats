@@ -27,6 +27,7 @@ declare
         'active_ecdsa_accounts',
         'active_ed25519_accounts',
         'network_fee',
+        'avg_network_fee',
         'network_tps',
         'new_accounts',
         'new_ecdsa_accounts',
