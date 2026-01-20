@@ -17,7 +17,7 @@ All metrics are pre-computed and stored in the `ecosystem.metric` table, with au
   - **timestamp9** - For Hedera's nanosecond precision timestamps
 - **Hedera Mirror Node** or access to **Hgraph's GraphQL API**
   - [Create a free account](https://hgraph.com/hedera)
-- **Prometheus** (`promtool`) for `avg_time_to_consensus` ([view docs](https://prometheus.io/docs/introduction/overview/))
+- **Prometheus** (`promtool`) for `avg_time_to_consensus` ([download](https://prometheus.io/download/))
 - **DeFiLlama API** for decentralized finance metrics ([view docs](https://defillama.com/docs/api))
 - **Grafana** (optional) for visualization dashboards
 

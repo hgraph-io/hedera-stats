@@ -6,6 +6,7 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Added
 
+- Average gas used metrics: avg_gas_used (all types), avg_gas_used_contract_call, avg_gas_used_ethereum_tx, avg_gas_used_contract_create
 - Daily period support for avg_time_to_consensus metric with automated ETL pipeline
 - Minute period support for avg_usd_conversion metric with 72-hour retention
 - Load metrics minute procedure for high-frequency price updates
