@@ -85,7 +85,7 @@ Schedule automated updates:
 1. **pg_cron for metric updates**:
    ```bash
    # Edit src/jobs/pg_cron_metrics.sql
-   # Replace <database_name> with your database name
+   # Replace <database_name> and <database_user> with your database name and database user
    psql -d your_database -f src/jobs/pg_cron_metrics.sql
    ```
 
