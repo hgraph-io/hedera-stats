@@ -17,7 +17,7 @@ All metrics are pre-computed and stored in the `ecosystem.metric` table, with au
   - **timestamp9** - For Hedera's nanosecond precision timestamps
 - **Hedera Mirror Node** or access to **Hgraph's GraphQL API**
   - [Create a free account](https://hgraph.com/hedera)
-- **Prometheus** (`promtool`) for `avg_time_to_consensus` ([view docs](https://prometheus.io/docs/introduction/overview/))
+- **Prometheus** (`promtool`) for `avg_time_to_consensus` ([download](https://prometheus.io/download/))
 - **DeFiLlama API** for decentralized finance metrics ([view docs](https://defillama.com/docs/api))
 - **Grafana** (optional) for visualization dashboards
 
@@ -35,7 +35,6 @@ Install Prometheus CLI (`promtool`):
 ```bash
 curl -L -O https://github.com/prometheus/prometheus/releases/download/v3.1.0/prometheus-3.1.0.linux-amd64.tar.gz
 tar -xvf prometheus-3.1.0.linux-amd64.tar.gz
-# one way to add the tool to the PATH
 cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 ```
 
@@ -44,49 +43,92 @@ cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 Set up your database:
 
 1. **Create schema and tables**:
-   ```sql
-   -- Execute the setup script
-   psql -d your_database -f src/setup/up.sql
+   ```bash
+   psql -d your_database -f src/up.sql
    ```
 
 2. **Load metric functions and procedures**:
-   - Execute SQL scripts from `src/metrics/` directories
-   - Load job procedures from `src/jobs/procedures/`
-   - Initialize metric descriptions from `src/metric_descriptions.sql`
+   ```bash
+   # Load all metric functions from each category
+   psql -d your_database -f src/metrics/activity-engagement/*.sql
+   psql -d your_database -f src/metrics/evm/*.sql
+   psql -d your_database -f src/metrics/hbar-defi/*.sql
+   psql -d your_database -f src/metrics/network-performance/*.sql
+   psql -d your_database -f src/metrics/transactions/*.sql
+   psql -d your_database -f src/metrics/non-fungible-tokens/*.sql
 
-Configure environment variables (example `.env`):
+   # Load job procedures
+   psql -d your_database -f src/jobs/load_metrics_hour.sql
+   psql -d your_database -f src/jobs/load_metrics_day.sql
+   # ... (load other period procedures as needed)
+
+   # Load metric descriptions
+   psql -d your_database -f src/metric_descriptions.sql
+   ```
+
+Configure environment variables (create `.env` file):
 
 ```env
+# Database connection
 DATABASE_URL="postgresql://user:password@localhost:5432/hedera_stats"
+POSTGRES_CONNECTION_STRING="postgresql://user:password@localhost:5432/hedera_stats"
+
+# API Keys
 HGRAPH_API_KEY="your_api_key"
+
+# Prometheus (for avg_time_to_consensus)
+PROMETHEUS_ENDPOINT="https://your-prometheus-endpoint"
 ```
 
 Schedule automated updates:
 
 1. **pg_cron for metric updates**:
-   ```sql
-   -- Edit src/jobs/pg_cron_metrics.sql
-   -- Replace <database_name> and <database_user> placeholders
+   ```bash
+   # Edit src/jobs/pg_cron_metrics.sql
+   # Replace <database_name> with your database name
    psql -d your_database -f src/jobs/pg_cron_metrics.sql
    ```
 
 2. **Time-to-consensus updates** (if using Prometheus):
    ```bash
    crontab -e
+   # Add these entries:
+   # Hourly collection
    1 * * * * cd /path/to/hedera-stats/src/time-to-consensus && bash ./run.sh >> ./.raw/cron.log 2>&1
+   # Daily collection
+   2 0 * * * cd /path/to/hedera-stats/src/time-to-consensus && bash ./run_day.sh >> ./.raw/cron_day.log 2>&1
    ```
 
 ## Repository Structure
 
-```markdown
+```
 hedera-stats/
 ├── src/
-│   ├── grafana/               # Grafana dashboard template
-│   ├── jobs/                  # Automated data loading and scheduling
-│   ├── metrics/               # Metric calculation SQL functions
-│   ├── setup/                 # Database schema setup
-│   └── time-to-consensus/     # Consensus time metrics ETL
-├── CLAUDE.md                  # AI assistant guidance
+│   ├── up.sql                      # Database schema setup (extensions, tables, types)
+│   ├── metric_descriptions.sql     # Metric metadata (name, description, methodology)
+│   ├── grafana/                    # Grafana dashboard JSON exports
+│   │   └── Hgraph_Hedera-Stats-Grafana_V2.json
+│   ├── jobs/                       # Job procedures and scheduling
+│   │   ├── load_metrics_minute.sql # High-frequency price updates
+│   │   ├── load_metrics_hour.sql   # Hourly loader (23 metrics)
+│   │   ├── load_metrics_day.sql    # Daily loader (38 metrics)
+│   │   ├── load_metrics_week.sql   # Weekly aggregations
+│   │   ├── load_metrics_month.sql  # Monthly aggregations
+│   │   ├── load_metrics_quarter.sql
+│   │   ├── load_metrics_year.sql
+│   │   ├── load_metrics_init.sql   # Backfill/initialization
+│   │   └── pg_cron_metrics.sql     # Cron job definitions
+│   ├── metrics/                    # Metric calculation functions
+│   │   ├── activity-engagement/    # Account activity (11 functions)
+│   │   ├── evm/                    # Smart contracts (5 functions)
+│   │   ├── hbar-defi/              # Price & supply (4 functions)
+│   │   ├── network-performance/    # Fee & TPS (2 functions)
+│   │   ├── transactions/           # Transaction counts (14+ functions)
+│   │   └── non-fungible-tokens/    # NFT sales (2 functions)
+│   └── time-to-consensus/          # Prometheus ETL pipeline
+├── CLAUDE.md                       # AI assistant guidance
+├── WORKFLOW.md                     # Development workflow
+├── CHANGELOG.md                    # Version history
 ├── LICENSE
 └── README.md
 ```
@@ -95,11 +137,23 @@ hedera-stats/
 
 ### Core Data Model
 
-- **ecosystem.metric** - Central table storing all calculated metrics with time ranges
-- **ecosystem.metric_total** - Standard return type for metric functions: (int8range, total)
-  - `int8range`: PostgreSQL range type for timestamp boundaries
-  - `total`: Bigint value representing the metric count/value
-- **ecosystem.metric_description** - Metadata and descriptions for each metric
+- **ecosystem.metric** - Central table storing all calculated metrics
+  - Columns: `name`, `period`, `timestamp_range` (int8range), `total` (bigint)
+  - Unique constraint: `(name, period, timestamp_range)`
+- **ecosystem.metric_total** - Standard return type for metric functions: `(int8range, total)`
+- **ecosystem.metric_description** - Metadata with name, description, and methodology
+
+### Metric Function Signature
+
+All metric functions follow this standard signature:
+
+```sql
+CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(
+    period TEXT,                    -- 'minute','hour','day','week','month','quarter','year'
+    start_timestamp BIGINT DEFAULT 0,
+    end_timestamp BIGINT DEFAULT CURRENT_TIMESTAMP::timestamp9::BIGINT
+) RETURNS SETOF ecosystem.metric_total
+```
 
 ### Data Processing Pipeline
 
@@ -108,47 +162,95 @@ hedera-stats/
 3. **Job Procedures** → Orchestrate metric loading via stored procedures
 4. **pg_cron Jobs** → Automate execution on schedule
 5. **ecosystem.metric table** → Store pre-computed results
-6. **Grafana Dashboards** → Visualize metrics via SQL queries
+6. **Grafana Dashboards / GraphQL API** → Query and visualize metrics
 
-## Available Metrics & Usage
+## Available Metrics
 
-Metrics categories include:
+### Metric Categories
 
-- Accounts & Network Participants
-- NFT-specific Metrics
-- Network Performance & Economic Metrics
+| Category | Count | Examples |
+|----------|-------|----------|
+| Activity & Engagement | 11 | `active_accounts`, `new_accounts`, `total_accounts`, `*_ecdsa_*`, `*_ed25519_*` |
+| EVM/Smart Contracts | 5 | `active_smart_contracts`, `new_smart_contracts`, `*_ecdsa_accounts_real_evm` |
+| HBAR & DeFi | 4 | `avg_usd_conversion`, `hbar_market_cap`, `hbar_total_released`, `hbar_total_supply` |
+| Network Performance | 2 | `network_fee`, `network_tps` |
+| Transactions | 14+ | `new_transactions`, `total_hcs_transactions`, `new_crypto_transactions` |
+| NFTs | 2 | `nft_collection_sales_volume`, `nft_collection_sales_volume_total` |
 
 [**View all metrics & documentation →**](https://docs.hgraph.com/category/hedera-stats)
 
-### Usage Example: Query Pre-Computed Metrics
+### Supported Periods
+
+| Period | Description | Typical Use Case |
+|--------|-------------|------------------|
+| `minute` | Per-minute data | High-frequency price tracking (72h retention) |
+| `hour` | Hourly aggregates | Real-time monitoring |
+| `day` | Daily aggregates | Standard reporting |
+| `week` | Weekly aggregates | Trend analysis |
+| `month` | Monthly aggregates | Monthly reports |
+| `quarter` | Quarterly aggregates | Quarterly reports |
+| `year` | Yearly aggregates | Annual comparisons |
+
+### Cron Schedule
+
+| Job | Schedule | Time (UTC) |
+|-----|----------|------------|
+| Minute | `* * * * *` | Every minute |
+| Hour | `1 * * * *` | :01 past each hour |
+| Day | `2 0 * * *` | 00:02 daily |
+| Week | `2 0 * * 0` | 00:02 Sundays |
+| Month | `4 0 1 * *` | 00:04 on 1st |
+| Quarter | `8 0 1 1,4,7,10 *` | 00:08 on Jan/Apr/Jul/Oct 1st |
+| Year | `14 0 1 1 *` | 00:14 on Jan 1st |
+
+## Usage Examples
+
+### Query Pre-Computed Metrics
 
 ```sql
--- Query the pre-computed metrics from ecosystem.metric table
+-- Query metrics from the ecosystem.metric table
 SELECT *
 FROM ecosystem.metric
-WHERE name = '<metric_name>'
+WHERE name = 'active_accounts'
+  AND period = 'day'
 ORDER BY timestamp_range DESC
 LIMIT 20;
 ```
 
-### Usage Example: Test Metric Functions
+### Test Metric Functions Directly
 
 ```sql
--- Test a metric function directly
-SELECT * FROM ecosystem.metric_activity_active_accounts('mainnet', 'hour');
+-- Call a metric function with time range
+SELECT * FROM ecosystem.active_accounts(
+    'day',
+    (current_timestamp - interval '7 days')::timestamp9::bigint,
+    current_timestamp::timestamp9::bigint
+);
 
--- Check job status
+-- Check job execution status
 SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
 ```
 
-### Usage Example: Custom Grafana Dashboard
+### Run Load Procedures Manually
+
+```sql
+-- Run a specific period's loader
+CALL ecosystem.load_metrics_hour();
+CALL ecosystem.load_metrics_day();
+
+-- Backfill/initialize metrics
+CALL ecosystem.load_metrics_init();
+```
+
+### Custom Grafana Dashboard
 
 Use Grafana to visualize metrics:
 
-- Import `Hedera_KPI_Dashboard.json` from `src/dashboard`.
-- SQL queries provided in the same directory serve as data sources.
+1. Import `Hgraph_Hedera-Stats-Grafana_V2.json` from `src/grafana/`
+2. Configure PostgreSQL data source pointing to your database
+3. Dashboards query `ecosystem.metric` table directly
 
-### Usage Example: Fetching Metrics via GraphQL API
+### Fetching Metrics via GraphQL API
 
 Query available metrics dynamically via GraphQL API ([test in our developer playground](https://dashboard.hgraph.com)):
 
@@ -169,14 +271,41 @@ query AvailableMetrics {
 ### Missing data or discrepancies?
 
 - Verify you're querying the correct API endpoint:
-  - Staging environment (`hgraph.dev`) may have incomplete data.
-  - Production endpoint (`hgraph.io`) requires an API key.
+  - Staging environment (`hgraph.dev`) may have incomplete data
+  - Production endpoint (`hgraph.io`) requires an API key
+
+### Job not running?
+
+```sql
+-- Check scheduled cron jobs
+SELECT * FROM cron.job;
+
+-- Check recent job execution history
+SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
+```
+
+### Metric returning NULL or empty?
+
+```sql
+-- Verify the metric function exists
+\df ecosystem.<metric_name>
+
+-- Check if metric is in the load procedure's array
+-- (review src/jobs/load_metrics_<period>.sql)
+
+-- Test the function directly
+SELECT * FROM ecosystem.<metric_name>(
+    'day',
+    (current_timestamp - interval '30 days')::timestamp9::bigint,
+    current_timestamp::timestamp9::bigint
+);
+```
 
 ### Improve query performance
 
-- Use broader granularity (day/month) for extensive periods.
-- Limit result size with `limit` and `order_by`.
-- Cache frequently accessed data.
+- Use broader granularity (day/month) for extensive time periods
+- Limit result size with `LIMIT` and filter by `period`
+- Query pre-computed data from `ecosystem.metric` instead of calling functions directly
 
 ## Additional Resources
 
@@ -191,11 +320,13 @@ query AvailableMetrics {
 
 We welcome contributions!
 
-1. Fork this repository.
-2. Create your feature branch (`git checkout -b feature/new-metric`).
-3. Commit changes (`git commit -am 'Add new metric'`).
-4. Push to the branch (`git push origin feature/new-metric`).
-5. Submit a Pull Request detailing your changes.
+1. Fork this repository
+2. Create your feature branch (`git checkout -b feature/new-metric`)
+3. Commit changes (`git commit -am 'Add new metric'`)
+4. Push to the branch (`git push origin feature/new-metric`)
+5. Submit a Pull Request detailing your changes
+
+See [WORKFLOW.md](WORKFLOW.md) for detailed development guidelines.
 
 ## License
 
