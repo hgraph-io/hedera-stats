@@ -121,5 +121,9 @@ begin
         'elapsed_seconds', extract(epoch from (clock_timestamp() - total_time))
     );
 
+    -- Refresh top NFT collections ranking (72-hour window, top 50, no concentration filter)
+    perform ecosystem.top_non_fungible_tokens_erc(72, 50, 1.0);
+    raise info 'Refreshed top NFT collections ranking';
+
 end;
 $$;
