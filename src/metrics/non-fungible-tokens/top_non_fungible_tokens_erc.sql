@@ -1,8 +1,11 @@
--- Top 50 Non-Fungible Token Collections by Composite Score with Concentration Filter
+-- Top 50 ERC-721 Smart Contract Collections by Composite Score with Concentration Filter
 -- 
--- This function ranks NFT collections based on a weighted composite score:
+-- This function ranks ERC-721 NFT smart contracts based on a weighted composite score:
 --   - 60% weight: Normalized sales volume (HBAR)
 --   - 40% weight: Normalized transaction count
+--
+-- Data Source: erc.token (ERC-721 contracts), erc.nft_transfer (Transfer events)
+-- Key Difference from HTS: Queries erc schema instead of public.token
 --
 -- Concentration Filter: Available but DISABLED by default (threshold=1.0)
 --   - Set exclusion_threshold < 1.0 to enable filtering
@@ -17,7 +20,8 @@ DROP FUNCTION IF EXISTS ecosystem.top_non_fungible_tokens_erc(integer, integer) 
 -- Create custom return type
 CREATE TYPE ecosystem._top_non_fungible_tokens_erc AS (
     rank integer,                      -- Position in ranking (1 = highest score)
-    token_id bigint,                   -- Hedera token ID
+    token_id bigint,                   -- ERC-721 contract token_id
+    token_evm_address text,            -- EVM address of the contract (0x...)
     collection_name text,              -- Name of the NFT collection
     sales_volume_hbar numeric,         -- Total HBAR sales in time window
     transaction_count bigint,          -- Number of unique transactions
@@ -56,50 +60,69 @@ BEGIN
         FROM params p
     ),
     
-    nft_transactions AS (
-        -- Extract all NFT transactions in time window
+    erc721_transfers AS (
+        -- Extract all ERC-721 NFT transfers in time window from erc schema
         SELECT 
-            (nft.obj->>'token_id')::bigint AS token_id,
-            t.consensus_timestamp,
-            t.payer_account_id,
-            jsonb_array_length(t.nft_transfer) as nft_count,
-            token.treasury_account_id,
-            token.name::text AS collection_name,
+            nft.token_id,
+            nft.consensus_timestamp,
+            nft.payer_account_id,
+            nft.sender_account_id,
+            nft.receiver_account_id,
+            nft.transfer_type,
+            t.name::text AS collection_name,
+            t.token_evm_address
+        FROM erc.nft_transfer nft
+        JOIN erc.token t ON t.token_id = nft.token_id
+            AND t.contract_type = 'ERC_721'
+        WHERE nft.consensus_timestamp >= (SELECT start_ts FROM time_window)
+          AND nft.consensus_timestamp <= (SELECT end_ts FROM time_window)
+          AND nft.transfer_type IN ('transfer', 'mint', 'burn')  -- All transfer types
+    ),
+    
+    transfers_with_hbar AS (
+        -- Link ERC-721 transfers to HBAR payments via crypto_transfer
+        SELECT 
+            et.token_id,
+            et.token_evm_address,
+            et.collection_name,
+            et.consensus_timestamp,
+            et.payer_account_id,
+            et.sender_account_id,
+            et.receiver_account_id,
+            et.transfer_type,
             ct.amount,
             ct.entity_id
-        FROM transaction t
-        CROSS JOIN LATERAL jsonb_array_elements(t.nft_transfer) AS nft(obj)
-        JOIN token ON token.token_id = (nft.obj->>'token_id')::bigint 
-            AND token.type = 'NON_FUNGIBLE_UNIQUE'
-        LEFT JOIN crypto_transfer ct ON ct.consensus_timestamp = t.consensus_timestamp
-        WHERE t.consensus_timestamp >= (SELECT start_ts FROM time_window)
-          AND t.consensus_timestamp <= (SELECT end_ts FROM time_window)
-          AND t.result = 22  -- SUCCESS only
-          AND t.nft_transfer IS NOT NULL
+        FROM erc721_transfers et
+        LEFT JOIN crypto_transfer ct ON ct.consensus_timestamp = et.consensus_timestamp
     ),
     
     transaction_hbar AS (
-        -- Calculate HBAR amount per transaction, excluding treasury
+        -- Calculate HBAR amount per transaction
+        -- Exclude sender from sales volume (sender pays receiver)
         SELECT 
             token_id,
+            token_evm_address,
             collection_name,
             consensus_timestamp,
             payer_account_id,
-            nft_count,
             COALESCE(
-                SUM(amount) FILTER (WHERE amount > 0 AND entity_id != treasury_account_id), 
+                SUM(amount) FILTER (
+                    WHERE amount > 0 
+                    AND entity_id != sender_account_id
+                ), 
                 0
             ) as hbar_tinybar
-        FROM nft_transactions
-        GROUP BY token_id, collection_name, consensus_timestamp, payer_account_id, nft_count, treasury_account_id
+        FROM transfers_with_hbar
+        GROUP BY token_id, token_evm_address, collection_name, consensus_timestamp, payer_account_id, sender_account_id
     ),
     
     combined_metrics AS (
-        -- Aggregate metrics per collection (before concentration filter)
+        -- Aggregate metrics per ERC-721 collection (before concentration filter)
         SELECT 
             token_id,
+            MAX(token_evm_address) AS token_evm_address,
             MAX(collection_name) AS collection_name,
-            SUM(hbar_tinybar / NULLIF(nft_count, 1)) / 100000000.0 AS sales_volume_hbar,
+            SUM(hbar_tinybar) / 100000000.0 AS sales_volume_hbar,
             COUNT(DISTINCT consensus_timestamp) AS transaction_count,
             COUNT(DISTINCT payer_account_id) AS unique_accounts
         FROM transaction_hbar
@@ -112,7 +135,7 @@ BEGIN
             token_id,
             payer_account_id,
             COUNT(DISTINCT consensus_timestamp) AS account_tx_count
-        FROM nft_transactions
+        FROM erc721_transfers
         GROUP BY token_id, payer_account_id
     ),
     
@@ -135,23 +158,24 @@ BEGIN
     concentration_stats AS (
         -- Calculate concentration: % of transactions from top 5 accounts
         SELECT 
-            nt.token_id,
-            COUNT(DISTINCT nt.consensus_timestamp) AS total_tx,
-            COUNT(DISTINCT nt.consensus_timestamp) FILTER (
+            et.token_id,
+            COUNT(DISTINCT et.consensus_timestamp) AS total_tx,
+            COUNT(DISTINCT et.consensus_timestamp) FILTER (
                 WHERE EXISTS (
                     SELECT 1 FROM top5_accounts t5 
-                    WHERE t5.token_id = nt.token_id 
-                    AND t5.payer_account_id = nt.payer_account_id
+                    WHERE t5.token_id = et.token_id 
+                    AND t5.payer_account_id = et.payer_account_id
                 )
             ) AS top5_tx
-        FROM nft_transactions nt
-        GROUP BY nt.token_id
+        FROM erc721_transfers et
+        GROUP BY et.token_id
     ),
     
     combined_with_filter AS (
         -- Join metrics with concentration stats and apply filter
         SELECT 
             cm.token_id,
+            cm.token_evm_address,
             cm.collection_name,
             cm.sales_volume_hbar,
             cm.transaction_count,
@@ -177,6 +201,7 @@ BEGIN
         -- Apply min-max normalization to scale values to [0, 1]
         SELECT 
             cm.token_id,
+            cm.token_evm_address,
             cm.collection_name,
             cm.sales_volume_hbar,
             cm.transaction_count,
@@ -201,6 +226,7 @@ BEGIN
         -- Use COALESCE to treat NULL volume as 0 (collections with no sales)
         SELECT 
             token_id,
+            token_evm_address,
             collection_name,
             sales_volume_hbar,
             transaction_count,
@@ -221,6 +247,7 @@ BEGIN
                 sales_volume_hbar DESC
         )::integer AS rank,
         token_id,
+        token_evm_address,
         collection_name,
         ROUND(sales_volume_hbar, 2) AS sales_volume_hbar,
         transaction_count,
@@ -243,4 +270,4 @@ $$;
 
 -- Add function comment
 COMMENT ON FUNCTION ecosystem.top_non_fungible_tokens_erc IS 
-'Ranks top NFT collections using composite score (60% volume + 40% transactions). Concentration filter available (default: disabled with threshold=1.0). Set exclusion_threshold < 1.0 to filter collections where top 5 accounts contribute >threshold of transactions.';
+'Ranks top ERC-721 smart contract NFT collections using composite score (60% volume + 40% transactions). Queries erc.token and erc.nft_transfer tables. Concentration filter available (default: disabled with threshold=1.0). Set exclusion_threshold < 1.0 to filter collections where top 5 accounts contribute >threshold of transactions.';
