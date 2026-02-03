@@ -23,6 +23,7 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Changed
 
+- Removed Bybit from avg_usd_conversion exchange sources (now uses 4 exchanges: Binance, OKX, Bitget, MEXC)
 - Updated metric descriptions
 - Refactored transaction metrics to use simplified HCS and total categories
 - Updated job procedures for better metric loading
