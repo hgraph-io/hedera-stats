@@ -20,13 +20,11 @@ declare
     new_end_ms bigint;
 
     binance_interval text;
-    bybit_interval text;
     okx_bar text;
     bitget_granularity text;
     mexc_interval text;
 
     binance_content jsonb;
-    bybit_content jsonb;
     okx_content jsonb;
     bitget_content jsonb;
     mexc_content jsonb;
@@ -34,7 +32,6 @@ declare
     rec jsonb;
 
     binance_url text;
-    bybit_url text;
     okx_url text;
     bitget_url text;
     mexc_url text;
@@ -49,38 +46,32 @@ begin
     case period
         when 'month' then
             binance_interval := '1M';
-            bybit_interval := 'M';
             okx_bar := '1Mutc';
             bitget_granularity := '1Mutc';
             mexc_interval := '1M';
         when 'week' then
             binance_interval := '1w';
-            bybit_interval := 'W';
             okx_bar := '1Wutc';
             bitget_granularity := '1Wutc';
             mexc_interval := '1W';
         when 'day' then
             binance_interval := '1d';
-            bybit_interval := 'D';
             okx_bar := '1Dutc';
             bitget_granularity := '1Dutc';
             mexc_interval := '1d';
         when 'hour' then
             binance_interval := '1h';
-            bybit_interval := '60';
             okx_bar := '1H';
             bitget_granularity := '1h';
             mexc_interval := '60m';
         when 'minute' then
             binance_interval := '1m';
-            bybit_interval := '1';
             okx_bar := '1m';
             bitget_granularity := '1min';
             mexc_interval := '1m';
         else
             -- use month period otherwise
             binance_interval := '1M';
-            bybit_interval := 'M';
             okx_bar := '1Mutc';
             bitget_granularity := '1Mutc';
             mexc_interval := '1M';
@@ -107,23 +98,6 @@ begin
     exception when others then
         raise warning 'error fetching data from binance: %', sqlerrm;
         binance_content := '[]'::jsonb;
-    end;
-
-    -- bybit
-    bybit_url :=
-        'https://api.bybit.com/v5/market/kline'
-        || '?symbol=HBARUSDT'
-        || '&interval=' || bybit_interval
-        || '&startTime=' || new_start_ms
-        || '&endTime=' || new_end_ms
-        || '&limit=' || limit_candles;
-    begin
-        raise notice 'bybit url: %', bybit_url;
-        select content::jsonb into bybit_content from http_get(bybit_url);
-        -- raise notice 'bybit content: %', bybit_content;
-    exception when others then
-        raise warning 'error fetching data from bybit: %', sqlerrm;
-        bybit_content := '{"result": {"list": []}}'::jsonb;
     end;
 
     -- okx
@@ -183,17 +157,6 @@ begin
     -- parse binance data
     for rec in
         select * from jsonb_array_elements(binance_content) as candle
-    loop
-        insert into temp_parsed_data (open_time_ms, close_price)
-        values (
-            (rec->>0)::bigint,
-            (rec->>4)::numeric
-        );
-    end loop;
-
-    -- parse bybit data
-    for rec in
-        select * from jsonb_array_elements(bybit_content->'result'->'list') as elem
     loop
         insert into temp_parsed_data (open_time_ms, close_price)
         values (
