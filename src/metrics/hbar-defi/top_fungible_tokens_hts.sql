@@ -11,14 +11,6 @@
 --   * Requires minimum $100 volume OR market cap/volume ratio < 50,000:1
 --   * Excludes tokens with $0 volume AND market cap > $10,000
 -- 
--- Environment Auto-Detection:
--- - Testnet: Detects 'testnet' in database name
--- - Mainnet: All other databases
--- - API credentials loaded from ecosystem.api_config table
--- 
--- Prerequisites:
--- - Run src/Setup/saucerswap_api_config.sql to configure API credentials
--- 
 -- Methodology: https://docs.hgraph.com/hedera-stats-wip/top-50-fungible-tokens
 -- ============================================================================
 
@@ -30,7 +22,7 @@ DROP FUNCTION IF EXISTS ecosystem.top_fungible_tokens_hts(integer, integer) CASC
 -- Create custom return type
 CREATE TYPE ecosystem._top_fungible_tokens_hts AS (
     rank INTEGER,                       -- Position in ranking (1 = highest score)
-    token_id BIGINT,                    -- Hedera token ID
+    token_id entity_id,                 -- Hedera token ID 
     token_name TEXT,                    -- Name of the token
     token_symbol TEXT,                  -- Token ticker symbol
     price_usd NUMERIC,                  -- Current USD price (from SaucerSwap)
@@ -66,24 +58,18 @@ BEGIN
     
     -- Load API credentials from configuration table
     IF current_db LIKE '%testnet%' THEN
-        SELECT ac.api_url, ac.api_key 
-        INTO api_url, api_key
+        SELECT ac.api_url, ac.api_key INTO api_url, api_key
         FROM ecosystem.api_config ac
-        WHERE ac.service_name = 'saucerswap' 
-          AND ac.environment = 'testnet'
-        LIMIT 1;
+        WHERE ac.service_name = 'saucerswap' AND ac.environment = 'testnet';
     ELSE
-        SELECT ac.api_url, ac.api_key
-        INTO api_url, api_key
+        SELECT ac.api_url, ac.api_key INTO api_url, api_key
         FROM ecosystem.api_config ac
-        WHERE ac.service_name = 'saucerswap'
-          AND ac.environment = 'mainnet'
-        LIMIT 1;
+        WHERE ac.service_name = 'saucerswap' AND ac.environment = 'mainnet';
     END IF;
     
-    -- Verify credentials were loaded
+    -- Verify credentials are configured
     IF api_url IS NULL OR api_key IS NULL THEN
-        RAISE EXCEPTION 'SaucerSwap API credentials not found. Run src/Setup/saucerswap_api_config.sql first.';
+        RAISE EXCEPTION 'SaucerSwap API credentials not found in ecosystem.api_config table.';
     END IF;
     
     -- Calculate time window (rolling window from NOW)
@@ -128,8 +114,8 @@ BEGIN
     token_market_caps AS (
         SELECT 
             t.token_id,
-            t.symbol as db_symbol,
-            t.name as db_name,
+            t.symbol::TEXT as db_symbol,
+            t.name::TEXT as db_name,
             t.type,
             s.price_usd,
             s.decimals as ss_decimals,
