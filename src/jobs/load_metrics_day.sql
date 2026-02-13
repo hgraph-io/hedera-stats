@@ -13,6 +13,7 @@ declare
         'total_ecdsa_accounts',
         'total_ed25519_accounts',
         'total_smart_contracts',
+        'total_erc1155_accounts',
         'hbar_total_released',
         'avg_usd_conversion',
         'hbar_market_cap',
