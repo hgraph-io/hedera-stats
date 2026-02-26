@@ -14,6 +14,7 @@ declare
         'total_ed25519_accounts',
         'total_smart_contracts',
         'total_erc1155_accounts',
+        'total_erc3643_accounts',
         'hbar_total_released',
         'hbar_market_cap',
         'active_developer_accounts',
