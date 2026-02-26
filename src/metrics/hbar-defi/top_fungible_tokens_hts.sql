@@ -14,13 +14,13 @@
 -- Methodology: https://docs.hgraph.com/hedera-stats-wip/top-50-fungible-tokens
 -- ============================================================================
 
--- Drop existing type and function if they exist
-DROP TYPE IF EXISTS ecosystem._top_fungible_tokens_hts CASCADE;
-DROP FUNCTION IF EXISTS ecosystem.top_fungible_tokens_hts(text, bigint, text) CASCADE;
-DROP FUNCTION IF EXISTS ecosystem.top_fungible_tokens_hts(integer, integer) CASCADE;
+-- EXAMPLE QUERY: Top Fungible Tokens (HTS)
 
--- Create custom return type
-CREATE TYPE ecosystem._top_fungible_tokens_hts AS (
+-- SELECT * FROM ecosystem.top_fungible_tokens_hts();
+
+-- CREATE TABLE: Top Fungible Tokens (HTS)
+
+CREATE TABLE ecosystem._top_fungible_tokens_hts (
     rank INTEGER,                       -- Position in ranking (1 = highest score)
     token_id entity_id,                 -- Hedera token ID 
     token_name TEXT,                    -- Name of the token
