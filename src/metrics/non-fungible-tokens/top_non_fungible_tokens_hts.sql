@@ -9,13 +9,13 @@
 --   - Excludes collections where top 5 accounts contribute >threshold of transactions
 -- Methodology: https://docs.hgraph.com/hedera-stats-wip/top-50-non-fungible-tokens
 
--- Drop existing type and function if they exist
-DROP TYPE IF EXISTS ecosystem._top_non_fungible_tokens_hts CASCADE;
-DROP FUNCTION IF EXISTS ecosystem.top_non_fungible_tokens_hts(integer, integer, numeric) CASCADE;
-DROP FUNCTION IF EXISTS ecosystem.top_non_fungible_tokens_hts(integer, integer) CASCADE;
+-- EXAMPLE QUERY: Top Non-Fungible Token Collections (HTS)
 
--- Create custom return type
-CREATE TYPE ecosystem._top_non_fungible_tokens_hts AS (
+-- SELECT * FROM ecosystem.top_non_fungible_tokens_hts();
+
+-- CREATE TABLE: Top Non-Fungible Token Collections (HTS)
+
+CREATE TABLE ecosystem._top_non_fungible_tokens_hts (
     rank integer,                      -- Position in ranking (1 = highest score)
     token_id bigint,                   -- Hedera token ID
     collection_name text,              -- Name of the NFT collection
