@@ -12,13 +12,13 @@
 --   - Excludes collections where top 5 accounts contribute >threshold of transactions
 -- Methodology: https://docs.hgraph.com/hedera-stats-wip/top-50-non-fungible-tokens
 
--- Drop existing type and function if they exist
-DROP TYPE IF EXISTS ecosystem._top_non_fungible_tokens_erc CASCADE;
-DROP FUNCTION IF EXISTS ecosystem.top_non_fungible_tokens_erc(integer, integer, numeric) CASCADE;
-DROP FUNCTION IF EXISTS ecosystem.top_non_fungible_tokens_erc(integer, integer) CASCADE;
+-- EXAMPLE QUERY: Top Non-Fungible Token Collections (ERC)
 
--- Create custom return type
-CREATE TYPE ecosystem._top_non_fungible_tokens_erc AS (
+-- SELECT * FROM ecosystem.top_non_fungible_tokens_erc();
+
+-- CREATE TABLE: Top Non-Fungible Token Collections (ERC)
+
+CREATE TABLE ecosystem._top_non_fungible_tokens_erc (
     rank integer,                      -- Position in ranking (1 = highest score)
     token_id bigint,                   -- ERC-721 contract token_id
     token_evm_address text,            -- EVM address of the contract (0x...)
