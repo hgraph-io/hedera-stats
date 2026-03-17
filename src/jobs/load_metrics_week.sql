@@ -16,6 +16,7 @@ declare
         'total_erc1155_accounts',
         'total_erc1400_accounts',
         'hbar_total_released',
+        'avg_usd_conversion',
         'hbar_market_cap',
         'active_developer_accounts',
         'active_retail_accounts',
