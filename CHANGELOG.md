@@ -6,6 +6,8 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Added
 
+- ERC-1400 (security token) total accounts metric (#75)
+- Week and month period support for avg_usd_conversion metric in load procedures
 - Average gas used metrics: avg_gas_used (all types), avg_gas_used_contract_call, avg_gas_used_ethereum_tx, avg_gas_used_contract_create
 - Daily period support for avg_time_to_consensus metric with automated ETL pipeline
 - Minute period support for avg_usd_conversion metric with 72-hour retention
