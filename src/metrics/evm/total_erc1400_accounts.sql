@@ -4,7 +4,7 @@
 CREATE OR REPLACE FUNCTION ecosystem.total_erc1400_accounts(
     period TEXT,
     start_timestamp BIGINT DEFAULT 0,
-    end_timestamp BIGINT DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000000000)::BIGINT
+    end_timestamp BIGINT DEFAULT current_timestamp::timestamp9::bigint
 )
 RETURNS SETOF ecosystem.metric_total
 LANGUAGE sql STABLE
@@ -36,6 +36,12 @@ window_first_hold AS (
     FROM erc.token_account
     WHERE token_id IN (SELECT token_id FROM erc1400_tokens)
       AND created_timestamp BETWEEN start_timestamp AND end_timestamp
+      AND account_id NOT IN (
+          SELECT DISTINCT account_id
+          FROM erc.token_account
+          WHERE token_id IN (SELECT token_id FROM erc1400_tokens)
+            AND created_timestamp < start_timestamp
+      )
     GROUP BY account_id
 ),
 
