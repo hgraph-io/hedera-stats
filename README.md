@@ -122,7 +122,7 @@ hedera-stats/
 │   │   ├── activity-engagement/    # Account activity (11 functions)
 │   │   ├── evm/                    # Smart contracts (5 functions)
 │   │   ├── hbar-defi/              # Price & supply (4 functions)
-│   │   ├── network-performance/    # Fee & TPS (2 functions)
+│   │   ├── network-performance/    # Fee, avg fee & TPS (3 functions)
 │   │   ├── transactions/           # Transaction counts (14+ functions)
 │   │   └── non-fungible-tokens/    # NFT sales (2 functions)
 │   └── time-to-consensus/          # Prometheus ETL pipeline
