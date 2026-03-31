@@ -173,7 +173,7 @@ CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(
 | Activity & Engagement | 11 | `active_accounts`, `new_accounts`, `total_accounts`, `*_ecdsa_*`, `*_ed25519_*` |
 | EVM/Smart Contracts | 5 | `active_smart_contracts`, `new_smart_contracts`, `*_ecdsa_accounts_real_evm` |
 | HBAR & DeFi | 4 | `avg_usd_conversion`, `hbar_market_cap`, `hbar_total_released`, `hbar_total_supply` |
-| Network Performance | 2 | `network_fee`, `network_tps` |
+| Network Performance | 4 | `network_fee`, `avg_network_fee`, `network_tps`, `avg_time_to_consensus` |
 | Transactions | 14+ | `new_transactions`, `total_hcs_transactions`, `new_crypto_transactions` |
 | NFTs | 2 | `nft_collection_sales_volume`, `nft_collection_sales_volume_total` |
 
