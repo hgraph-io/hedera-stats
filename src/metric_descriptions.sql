@@ -9,6 +9,7 @@ values
     ('stablecoin_marketcap', 'Tracks the market capitalization of stablecoins circulating on the Hedera network as reported by DeFiLlama.', 'Fetches stablecoin circulation data from DeFiLlama and uses the peggedUSD value to record the stablecoin market cap (USD) for each day.'),
     -- Network Performance
     ('network_fee', 'Calculates revenue by summing all transaction fees collected on the mainnet.', 'Sums all transaction fees charged during the period to compute the total network revenue from fees.'),
+    ('avg_network_fee', 'Average transaction fee cost over a given period.', 'Calculates the mean charged transaction fee across all transactions with fees > 0 during the specified time period. Returns the average fee in tinybars as an integer.'),
     ('avg_time_to_consensus', 'Measures the average time it takes for transactions to reach consensus on the Hedera network within a given period.', 'Calculates the average difference between transaction submission time and consensus timestamp for all transactions in the period.'),
     ('network_tps', 'Measures the average number of transactions processed (per-second) by the Hedera network within a given period.', 'Divides the number of transactions in each time interval by the duration of that interval (in seconds) to obtain the average TPS, rounded down to a whole number.'),
     -- Activity & Engagement - Active Accounts
