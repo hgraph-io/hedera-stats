@@ -119,12 +119,12 @@ hedera-stats/
 │   │   ├── load_metrics_init.sql   # Backfill/initialization
 │   │   └── pg_cron_metrics.sql     # Cron job definitions
 │   ├── metrics/                    # Metric calculation functions
-│   │   ├── activity-engagement/    # Account activity (11 functions)
-│   │   ├── evm/                    # Smart contracts (5 functions)
-│   │   ├── hbar-defi/              # Price & supply (4 functions)
-│   │   ├── network-performance/    # Fee, avg fee & TPS (3 functions)
-│   │   ├── transactions/           # Transaction counts (14+ functions)
-│   │   └── non-fungible-tokens/    # NFT sales (2 functions)
+│   │   ├── activity-engagement/    # Account activity metrics
+│   │   ├── evm/                    # Smart contract metrics
+│   │   ├── hbar-defi/              # Price & supply metrics
+│   │   ├── network-performance/    # Fee & TPS metrics
+│   │   ├── transactions/           # Transaction count metrics
+│   │   └── non-fungible-tokens/    # NFT sales metrics
 │   └── time-to-consensus/          # Prometheus ETL pipeline
 ├── CLAUDE.md                       # AI assistant guidance
 ├── WORKFLOW.md                     # Development workflow
