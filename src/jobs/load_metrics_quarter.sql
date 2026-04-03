@@ -33,6 +33,7 @@ declare
         'new_hts_transactions',
         'new_crypto_transactions',
         'new_other_transactions',
+        'nft_collections_created',
         'total_transactions', -- light
         'total_hcs_transactions', -- light
         'total_crypto_transactions', -- light
