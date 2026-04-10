@@ -2,7 +2,27 @@
 
 All notable changes to the Hedera Stats project since August 1, 2024.
 
-## [Unreleased] - 2025-09-29
+## [Unreleased] - 2026-04-10
+
+### Added
+
+- Standalone Node.js/TypeScript application for running hedera-stats independently
+- Docker Compose deployment with custom Postgres container (timestamp9 extension)
+- postgres_fdw integration for read-only mirror node access from stats database
+- App-level cron scheduling (replaces pg_cron dependency on mirror node)
+- TypeScript reimplementation of API metrics (avg_usd_conversion, network_tvl, stablecoin_marketcap)
+- CLI flags: --init (backfill all metrics), --run=<job> (run single job)
+- Metric runner engine with per-metric error isolation
+- SQL loader that reads existing metric SQL files at startup
+
+### Changed
+
+- Architecture: metrics now run on a separate stats database via foreign data wrapper
+- Scheduling moved from pg_cron (inside Postgres) to node-cron (app layer)
+- pg_http calls replaced with native fetch in TypeScript
+- Project no longer requires superuser access on the mirror node database
+
+## [2025-09-29]
 
 ### Added
 

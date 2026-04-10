@@ -1,0 +1,35 @@
+services:
+  stats-db:
+    build:
+      context: ./docker/postgres
+    environment:
+      POSTGRES_DB: hedera_stats
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - stats-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hedera_stats"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    depends_on:
+      stats-db:
+        condition: service_healthy
+    environment:
+      STATS_DB_HOST: stats-db
+      STATS_DB_PORT: 5432
+      STATS_DB_NAME: hedera_stats
+      STATS_DB_USER: postgres
+      STATS_DB_PASSWORD: postgres
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  stats-data:
