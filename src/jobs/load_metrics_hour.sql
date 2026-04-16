@@ -36,7 +36,8 @@ declare
         'new_hscs_transactions',
         'new_hts_transactions',
         'new_crypto_transactions',
-        'new_other_transactions'
+        'new_other_transactions',
+        'nft_collections_created'
     ];                                             -- Metrics (functions for this job)
     current_period text;
     metric text;

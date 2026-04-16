@@ -71,7 +71,7 @@ values
     ('accounts_creating_nft_collections', 'Number of accounts that created NFT collections during the period', ''),
     ('active_nft_accounts', 'Number of active NFT accounts during the period', ''),
     ('active_nft_builder_accounts', 'Number of active NFT builder accounts during the period', ''),
-    ('nft_collections_created', 'Number of NFT collections created during the period', ''),
+    ('nft_collections_created', 'Tracks the number of new NFT collections (non-fungible token types) created on Hedera within a specific time period.', 'Counts distinct token_id entries from the token table where type is NON_FUNGIBLE_UNIQUE and created_timestamp falls within the specified period. Each unique token_id represents one NFT collection. Results are grouped by the truncated period start time.'),
     ('nfts_minted', 'Number of NFTs minted during the period', ''),
     ('nfts_transferred', 'Number of NFTs transferred during the period', ''),
     ('nft_sales_volume', 'Volume of NFT sales during the period', '')
