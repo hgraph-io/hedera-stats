@@ -26,6 +26,7 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Added
 
+- NFT collections created metric upgraded from legacy to active with proper methodology, added to all load procedures (hour, day, week, month, quarter, year)
 - Average network fee metric (avg_network_fee) to calculate mean transaction fee cost per period
 - Average gas used metrics: avg_gas_used (all types), avg_gas_used_contract_call, avg_gas_used_ethereum_tx, avg_gas_used_contract_create
 - Daily period support for avg_time_to_consensus metric with automated ETL pipeline
