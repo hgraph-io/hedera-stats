@@ -3,32 +3,40 @@ services:
     build:
       context: ./docker/postgres
     environment:
-      POSTGRES_DB: hedera_stats
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - stats-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d hedera_stats"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  app:
-    build: .
-    depends_on:
-      stats-db:
-        condition: service_healthy
-    environment:
-      STATS_DB_HOST: stats-db
-      STATS_DB_PORT: 5432
-      STATS_DB_NAME: hedera_stats
-      STATS_DB_USER: postgres
-      STATS_DB_PASSWORD: postgres
+      POSTGRES_DB: ${STATS_DB_NAME:-hedera_stats}
+      POSTGRES_USER: ${STATS_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${STATS_DB_PASSWORD:-postgres}
+      # Mirror node connection (used by init script to set up FDW)
+      MIRROR_NODE_HOST:
+      MIRROR_NODE_PORT:
+      MIRROR_NODE_DB:
+      MIRROR_NODE_USER:
+      MIRROR_NODE_PASSWORD:
     env_file:
       - .env
+    # pg_cron must be loaded in shared_preload_libraries. It lives in the
+    # default "postgres" db (which always exists) and uses
+    # cron.schedule_in_database() to target the stats database - see
+    # src/jobs/pg_cron_metrics.sql.
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pg_cron"
+      - "-c"
+      - "cron.database_name=postgres"
+    ports:
+      - "${STATS_DB_PORT:-5433}:5432"
+    volumes:
+      - stats-data:/var/lib/postgresql/data
+      # SQL files live in /sql inside the container; the init script reads
+      # them to load metric functions, descriptions, and cron jobs.
+      - ./src:/sql:ro
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STATS_DB_USER:-postgres} -d ${STATS_DB_NAME:-hedera_stats}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
 volumes:

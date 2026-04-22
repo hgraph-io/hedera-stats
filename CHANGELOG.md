@@ -2,25 +2,22 @@
 
 All notable changes to the Hedera Stats project since August 1, 2024.
 
-## [Unreleased] - 2026-04-10
+## [Unreleased] - 2026-04-22
 
 ### Added
 
-- Standalone Node.js/TypeScript application for running hedera-stats independently
-- Docker Compose deployment with custom Postgres container (timestamp9 extension)
-- postgres_fdw integration for read-only mirror node access from stats database
-- App-level cron scheduling (replaces pg_cron dependency on mirror node)
-- TypeScript reimplementation of API metrics (avg_usd_conversion, network_tvl, stablecoin_marketcap)
-- CLI flags: --init (backfill all metrics), --run=<job> (run single job)
-- Metric runner engine with per-metric error isolation
-- SQL loader that reads existing metric SQL files at startup
+- Standalone deployment via Docker Compose with a single `stats-db` Postgres container
+- Custom Postgres 16 image bundling `timestamp9`, `postgres_fdw`, `pg_http`, and `pg_cron`
+- `postgres_fdw` integration giving the stats DB read-only access to mirror node tables
+- Init script (`docker/postgres/init/01-init.sh`) that sets up extensions, FDW, imports foreign tables, loads metric functions, and schedules pg_cron jobs on first container start
+- Pre-declared mirror-node enum/domain types (`entity_type`, `token_type`, `nanos_timestamp`, `hbar_tinybars`, etc.) required for `IMPORT FOREIGN SCHEMA` against a standard Hedera mirror node
 
 ### Changed
 
-- Architecture: metrics now run on a separate stats database via foreign data wrapper
-- Scheduling moved from pg_cron (inside Postgres) to node-cron (app layer)
-- pg_http calls replaced with native fetch in TypeScript
-- Project no longer requires superuser access on the mirror node database
+- Stats computation now runs in its own Postgres container instead of on the mirror node
+- `pg_cron` schedules are installed on the stats DB rather than the mirror node
+- `src/jobs/pg_cron_metrics.sql` placeholder `<database_name>` is substituted with the stats DB name at init time
+- No longer requires superuser or extension-installation access on the mirror node database
 
 ## [2025-09-29]
 

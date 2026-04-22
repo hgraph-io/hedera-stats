@@ -1,11 +1,10 @@
 create schema if not exists ecosystem;
 
+-- Extensions are created by docker/postgres/init/01-init.sh. pg_cron lives
+-- in the default "postgres" database; timestamp9 and http live here.
 -- https://github.com/citusdata/pg_cron
-create extension if not exists pg_cron;
 -- https://github.com/optiver/timestamp9
-create extension if not exists timestamp9;
 -- https://github.com/pramsey/pgsql-http
-create extension if not exists http;
 
 create table if not exists ecosystem.metric (
     -- naming convention: <entity>_<action> (e.g. account_associated_nft)
