@@ -10,23 +10,12 @@
 -- or a market-cap / volume ratio under 50,000; zero-volume tokens excluded.
 -- Tie-break is deterministic (composite, then volume, then token_id).
 --
--- Reads dex.latest for live prices. SWITCH POINT: when the dex.latest ->
--- dex.spot_price rename lands (hg-core #1201), change the single FROM in
--- the spot_price CTE and add spot_price to the dex FDW import; nothing else.
---
 -- Methodology: https://docs.hgraph.com/hedera-stats-wip/top-50-fungible-tokens
 -- =====================================================================
 
--- Re-runnable sequence: drop the function before the table (the function
--- depends on the table type), then recreate both. No CASCADE (it would
--- desync Hasura metadata).
 DROP FUNCTION IF EXISTS ecosystem.top_fungible_tokens_hts(integer, integer, numeric);
 DROP TABLE IF EXISTS ecosystem._top_fungible_tokens_hts;
 
--- Return table: a real TABLE (relkind r) so Hasura can track the function.
--- Column order and types match the function's final SELECT exactly (SETOF
--- binds by position). token_id is declared bigint; the body casts the
--- entity_id-domain column with an explicit ::BIGINT (binary-coercible).
 CREATE TABLE ecosystem._top_fungible_tokens_hts (
     rank                     integer,
     market_cap_rank          integer,
@@ -57,12 +46,6 @@ CREATE TABLE ecosystem._top_fungible_tokens_hts (
     bound_max_ln_tx          numeric
 );
 
--- Signature is locked to three arguments. The remaining knobs
--- (min_volume_usd, max_mcap_volume_ratio, the three weights) stay as
--- literals in the params CTE. window_hours and min_liquidity_hbar are
--- clamped (a public Hasura function must not silently invert the window or
--- disable the liquidity floor). No STRICT (it blocks inlining and adds
--- nothing with DEFAULTs); no SET search_path (it blocks inlining).
 CREATE OR REPLACE FUNCTION ecosystem.top_fungible_tokens_hts(
     window_hours        integer DEFAULT 24,
     result_limit        integer DEFAULT 50,
@@ -99,10 +82,8 @@ BEGIN ATOMIC
         FROM params p
     ),
     spot_price AS (
-        -- Live board. Switch the FROM to dex.spot_price once the rename
-        -- lands (hg-core #1201); column parity assumed, assert post-rename.
         SELECT token_id, source, price_usd, price_hbar, liquidity_hbar, consensus_timestamp
-        FROM dex.latest
+        FROM dex.spot_price
     ),
     selected_price AS (
         SELECT DISTINCT ON (token_id)
@@ -177,8 +158,6 @@ BEGIN ATOMIC
         CROSS JOIN bounds b
         WHERE tt.consensus_timestamp >= b.start_ns
           AND tt.consensus_timestamp <  b.end_ns
-          -- BIGINT casts + the ARRAY(...) form are required for fdw pushdown
-          -- (the entity_id domain; FDW-import context only, not native).
           AND tt.token_id::bigint = ANY (ARRAY(SELECT token_id::bigint FROM survivors))
         GROUP BY tt.token_id
     ),

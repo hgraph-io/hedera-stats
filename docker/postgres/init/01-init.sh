@@ -80,7 +80,7 @@ DECLARE
   tables text[] := ARRAY[
     'entity', 'transaction', 'crypto_transfer',
     'contract_result', 'contract_log',
-    'token', 'token_transfer', 'nft_transfer', 'nft', 'nft_history'
+    'token', 'nft_transfer', 'nft', 'nft_history'
   ];
 BEGIN
   FOREACH t IN ARRAY tables LOOP
@@ -105,20 +105,6 @@ BEGIN
     RAISE NOTICE '  imported erc schema';
   EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE '  erc schema not available on mirror node (ok)';
-  END;
-END \$\$;
-
--- Import the dex schema (price + candle data) used by token-ranking metrics
--- such as top_fungible_tokens_hts. LIMIT TO keeps the import to the two tables
--- the metrics read (add spot_price here when the dex.latest rename lands).
-DO \$\$
-BEGIN
-  CREATE SCHEMA IF NOT EXISTS dex;
-  BEGIN
-    IMPORT FOREIGN SCHEMA dex LIMIT TO (latest, candle) FROM SERVER mirror_node INTO dex;
-    RAISE NOTICE '  imported dex schema (latest, candle)';
-  EXCEPTION WHEN OTHERS THEN
-    RAISE WARNING '  dex schema import failed: %', SQLERRM;
   END;
 END \$\$;
 SQL
