@@ -16,6 +16,8 @@
 DROP FUNCTION IF EXISTS ecosystem.top_fungible_tokens_hts(integer, integer, numeric);
 DROP TABLE IF EXISTS ecosystem._top_fungible_tokens_hts;
 
+-- Empty return-shape table (never populated): a real table so Hasura can track
+-- the function; column order/types must match the final SELECT (SETOF binds by position).
 CREATE TABLE ecosystem._top_fungible_tokens_hts (
     rank                     integer,
     market_cap_rank          integer,
