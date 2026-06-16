@@ -6,6 +6,7 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Added
 
+- `total_erc20_accounts` metric: rolling total of unique EVM addresses that have received ERC-20 tokens, sourced from the erc indexer's `token_transfer` table; added to day, week, and month load procedures
 - Standalone deployment via Docker Compose with a single `stats-db` Postgres container
 - Custom Postgres 16 image bundling `timestamp9`, `postgres_fdw`, `pg_http`, and `pg_cron`
 - `postgres_fdw` integration giving the stats DB read-only access to mirror node tables
