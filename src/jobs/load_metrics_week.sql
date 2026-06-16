@@ -17,6 +17,7 @@ declare
         'total_erc20_accounts',
         'total_erc721_accounts',
         'total_erc1400_accounts',
+        'total_erc3643_accounts',
         'hbar_total_released',
         'hbar_market_cap',
         'active_developer_accounts',
