@@ -15,6 +15,7 @@ declare
         'total_smart_contracts',
         'total_erc1155_accounts',
         'total_erc20_accounts',
+        'total_erc721_accounts',
         'total_erc1400_accounts',
         'hbar_total_released',
         'avg_usd_conversion',
