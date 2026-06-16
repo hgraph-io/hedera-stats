@@ -1,5 +1,6 @@
--- Total accounts holding ERC-20 tokens
+-- Total accounts that have received ERC-20 tokens
 -- Rolling total of unique EVM addresses that have received ERC-20 tokens
+-- (an address is counted from its first receipt onward, even if later transferred out)
 
 CREATE OR REPLACE FUNCTION ecosystem.total_erc20_accounts(
     period text,
@@ -40,9 +41,9 @@ base_holders AS (
 -- Aggregate new holders by the period of their first receipt within the window
 new_holders_per_period AS (
     SELECT
-        DATE_TRUNC(
+        date_trunc(
             period,
-            to_timestamp(first_receipt_timestamp / 1000000000.0)
+            first_receipt_timestamp::timestamp9::timestamp
         ) as period_start_timestamp,
         COUNT(*) as new_holders
     FROM first_receipt_per_holder
@@ -54,8 +55,8 @@ new_holders_per_period AS (
 -- Calculate rolling total: base + cumulative new holders
 SELECT
     int8range(
-        EXTRACT(EPOCH FROM period_start_timestamp)::bigint * 1000000000,
-        EXTRACT(EPOCH FROM LEAD(period_start_timestamp) OVER (ORDER BY period_start_timestamp))::bigint * 1000000000
+        period_start_timestamp::timestamp9::bigint,
+        (LEAD(period_start_timestamp) OVER (ORDER BY period_start_timestamp))::timestamp9::bigint
     ) as int8range,
     (SELECT base FROM base_holders) +
         SUM(new_holders) OVER (ORDER BY period_start_timestamp ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) as total
