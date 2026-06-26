@@ -73,9 +73,7 @@ BEGIN
         SELECT
             nft.token_id,
             nft.consensus_timestamp,
-            nft.payer_account_id,
-            t.name::text       AS collection_name,
-            t.token_evm_address
+            nft.payer_account_id
         FROM erc.nft_transfer nft
         JOIN erc.token t
           ON t.token_id = nft.token_id
@@ -106,7 +104,7 @@ BEGIN
         SELECT
             ct.consensus_timestamp,
             COALESCE(SUM(ct.amount) FILTER (WHERE ct.amount > 0 AND ct.entity_id > 1000), 0) AS gross_tinybar
-        FROM crypto_transfer ct
+        FROM public.crypto_transfer ct
         JOIN relevant_ts rt ON rt.consensus_timestamp = ct.consensus_timestamp
         GROUP BY ct.consensus_timestamp
     ),
@@ -114,20 +112,15 @@ BEGIN
     combined_metrics AS (
         SELECT
             ct.token_id,
-            MAX(e.token_evm_address) AS token_evm_address,
-            MAX(e.collection_name)   AS collection_name,
+            t.token_evm_address,
+            t.name::text AS collection_name,
             COALESCE(SUM(tv.gross_tinybar), 0) / 100000000.0 AS sales_volume_hbar,
             COUNT(DISTINCT ct.consensus_timestamp)           AS transaction_count,
             COUNT(DISTINCT ct.payer_account_id)              AS unique_accounts
         FROM collection_txns ct
         LEFT JOIN tx_value tv ON tv.consensus_timestamp = ct.consensus_timestamp
-        JOIN LATERAL (
-            SELECT token_evm_address, collection_name
-            FROM erc721_events e
-            WHERE e.token_id = ct.token_id
-            LIMIT 1
-        ) e ON TRUE
-        GROUP BY ct.token_id
+        JOIN erc.token t ON t.token_id = ct.token_id AND t.contract_type = 'ERC_721'
+        GROUP BY ct.token_id, t.token_evm_address, t.name
     ),
 
     -- Concentration: share of a collection's transactions driven by its top 5 payers.
