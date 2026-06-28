@@ -19,6 +19,7 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Changed
 
+- `top_non_fungible_tokens_erc` metric (Non-Fungible Tokens): validated and productionized the previously dead ERC-721 ranking. Fixed sales-volume attribution (the prior filter keyed on `sender_account_id`, which is NULL for pure-EVM transfers, silently zeroing all volume); volume is now the sum of positive `crypto_transfer` legs credited to non-system accounts (`entity_id > 1000`), computed once per transaction to avoid `nft_transfer`×`crypto_transfer` fan-out. Default window widened from 72h to 720h (30d) since ERC-721 sales are sparse. Return type changed from a composite TYPE to a real tracking TABLE so Hasura can track the function for GraphQL exposure (mirrors `top_fungible_tokens_hts`). On-demand only (no persistence or scheduled jobs)
 - Stats computation now runs in its own Postgres container instead of on the mirror node
 - `pg_cron` schedules are installed on the stats DB rather than the mirror node
 - `src/jobs/pg_cron_metrics.sql` placeholder `<database_name>` is substituted with the stats DB name at init time
