@@ -143,7 +143,7 @@ BEGIN
         ROUND((normalized_holders * 0.4)::numeric, 4)      AS holders_contribution
     FROM composite_scores
     ORDER BY composite_score DESC, transaction_count DESC, token_id ASC
-    LIMIT (SELECT res_limit FROM params);
+    LIMIT GREATEST(COALESCE((SELECT res_limit FROM params), 0), 0);
 END;
 $$;
 
