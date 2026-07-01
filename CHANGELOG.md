@@ -16,6 +16,7 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 - Init script (`docker/postgres/init/01-init.sh`) that sets up extensions, FDW, imports foreign tables, loads metric functions, and schedules pg_cron jobs on first container start
 - Pre-declared mirror-node enum/domain types (`entity_type`, `token_type`, `nanos_timestamp`, `hbar_tinybars`, etc.) required for `IMPORT FOREIGN SCHEMA` against a standard Hedera mirror node
 - `top_fungible_tokens_hts` metric (HBAR & DeFi): on-demand ranking of top HTS fungible tokens by a composite score (40% market cap + 40% DEX volume + 20% transactions), each component log-normalized then min-max scaled over a rolling window (default 24h). Phase 1 is on-demand only (no persistence or scheduled jobs)
+- `top_fungible_tokens_erc` metric (HBAR & DeFi): on-demand ranking of top ERC-20 fungible tokens by a composite score (60% transactions + 40% unique holders), each min-max scaled over a rolling window (default 720h / 30d). Activity-based rather than value-based: ERC-20 tokens on Hedera have no USD price source (per HG-2955) and their transfers do not settle in HBAR, so no market-cap or volume axis is possible. Sourced from the erc indexer's `token_transfer` table (contract_type `ERC_20`). Phase 1 is on-demand only (no persistence or scheduled jobs)
 
 ### Changed
 
