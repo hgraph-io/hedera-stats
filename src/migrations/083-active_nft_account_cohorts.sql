@@ -1,3 +1,10 @@
+-- 083-active_nft_account_cohorts.sql — active NFT account cohorts (materialized view).
+-- Promoted from src/metrics/legacy; tracked in Hasura. Publisher-side: the
+-- matview reads mirror-node tables and needs a scheduled REFRESH on the
+-- publisher (cron, not part of this migration). Not replicated to subscribers.
+
+BEGIN;
+
 create or replace function ecosystem.create_active_nft_account_cohort() returns void as $$
 begin
   if not exists (
@@ -15,7 +22,7 @@ create or replace function ecosystem.active_nft_account_cohorts(
   start_timestamp bigint default 0,
   end_timestamp bigint default current_timestamp::timestamp9::bigint
 )
-returns setof ecosystem . _active_nft_account_cohort
+returns setof ecosystem._active_nft_account_cohort
 language sql stable
 as $$
 
@@ -95,6 +102,7 @@ where timestamp_range != 'empty'
 ;
 
 $$;
+
 -------------------------------
 -- views
 -------------------------------
@@ -123,3 +131,5 @@ language sql stable
 as $$
 select upper(_row.timestamp_range)::timestamp9::date;
 $$;
+
+COMMIT;
