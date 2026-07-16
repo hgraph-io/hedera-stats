@@ -9,8 +9,15 @@
 # Connection is credential-free: the host Postgres socket dir is bind-mounted
 # and the container runs as the host's postgres UID, so peer auth maps to the
 # postgres role. Objects are owned by the per-network ecosystem_owner group role
-# via PGOPTIONS. Set POSTGRES_UID to the host postgres user's UID (id -u postgres)
-# if it isn't the Debian default of 999.
+# via PGOPTIONS.
+#
+# POSTGRES_UID MUST equal the host postgres user's UID (`id -u postgres`) — else
+# peer auth fails. Default 26 is the RHEL/Fedora postgres UID; on Debian it's 999.
+#
+# security_opt label=disable turns off SELinux confinement for the container so
+# it can reach the host's Postgres socket (on enforcing hosts the mounted socket
+# is otherwise denied with "Permission denied"). This is a short-lived local
+# admin container, not a network-facing service.
 #
 # Prerequisites in the target DB (external, superuser): the timestamp9 and http
 # extensions, the logical replication subscription, and CREATE on the database
@@ -23,7 +30,9 @@ x-migrate: &migrate
   image: localhost/hedera-stats-migrate:latest
   pull_policy: build
   restart: "no"
-  user: "${POSTGRES_UID:-999}"
+  user: "${POSTGRES_UID:-26}"
+  security_opt:
+    - label=disable
   volumes:
     - /var/run/postgresql:/var/run/postgresql
 
