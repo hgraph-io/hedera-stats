@@ -31,7 +31,14 @@ export PGPORT="${PGPORT:-5432}"
 export PGDATABASE="${PGDATABASE:-${POSTGRES_DB:-hedera_stats}}"
 export PGUSER="${PGUSER:-${POSTGRES_USER:-postgres}}"
 
-PSQL="psql -v ON_ERROR_STOP=1"
+# Readonly role that consumer/API roles inherit from — granted access to the
+# ecosystem objects (see the grants migration). Defaults to <db>_readonly
+# (e.g. hedera_mainnet_readonly); override with READONLY_ROLE if it differs.
+READONLY_ROLE="${READONLY_ROLE:-${PGDATABASE}_readonly}"
+
+# -v readonly_role=... exposes it to migrations as :"readonly_role". Harmless
+# for migrations that don't reference it.
+PSQL="psql -v ON_ERROR_STOP=1 -v readonly_role=${READONLY_ROLE}"
 MIG_DIR="${1:-/sql/migrations}"
 
 # Ensure the schema + tracking table exist before anything is applied. Both are
