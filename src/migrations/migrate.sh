@@ -15,14 +15,23 @@
 #
 #   docker compose exec stats-db bash /sql/migrations/migrate.sh
 #
-# Requires (already set in the container): POSTGRES_USER, POSTGRES_DB.
-# First-boot application of 001 needs superuser (CREATE EXTENSION).
+# Connection is over the Unix socket (PGHOST defaults to /var/run/postgresql),
+# so no password is needed: the postgres image's pg_hba.conf trusts local
+# socket connections. First-boot application of 001 needs superuser
+# (CREATE EXTENSION), which the default postgres role has. Override the PG*
+# vars below to point at a different database (e.g. a TCP host for ad-hoc runs).
 # =====================================================
 
 set -euo pipefail
 
-DB="${POSTGRES_DB:-hedera_stats}"
-PSQL="psql -v ON_ERROR_STOP=1 --username ${POSTGRES_USER} --dbname ${DB}"
+# libpq connection settings. Socket + trust auth = credential-free in the
+# container; every psql call below inherits these, so none pass -h/-U/-d.
+export PGHOST="${PGHOST:-/var/run/postgresql}"
+export PGPORT="${PGPORT:-5432}"
+export PGDATABASE="${PGDATABASE:-${POSTGRES_DB:-hedera_stats}}"
+export PGUSER="${PGUSER:-${POSTGRES_USER:-postgres}}"
+
+PSQL="psql -v ON_ERROR_STOP=1"
 MIG_DIR="${1:-/sql/migrations}"
 
 # Ensure the schema + tracking table exist before anything is applied. Both are

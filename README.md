@@ -44,15 +44,22 @@ Set up your database. The schema and every metric live in ordered migrations
 under `src/migrations/`; the runner applies each once and tracks it in
 `ecosystem.schema_migrations`.
 
+Under Docker this runs automatically on first boot (`migrate.sh` is mounted into
+`/docker-entrypoint-initdb.d`). It connects over the Unix socket, so no password
+is needed. To apply new migrations to a running container later:
+
 ```bash
-# Applies 001-init.sql and every metric/schema migration, in order.
-# Runs against the database in POSTGRES_DB as POSTGRES_USER.
-bash src/migrations/migrate.sh /path/to/src/migrations
+docker compose exec stats-db bash /sql/migrations/migrate.sh
 ```
 
-Under Docker this runs automatically on first boot (`migrate.sh` is mounted into `/docker-entrypoint-initdb.d`).
-To update a running database later, re-run the same command — already-applied
-migrations are skipped.
+Already-applied migrations are skipped. To run against a database outside Docker,
+override the libpq vars (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, and
+`PGPASSWORD` if not using socket/trust auth):
+
+```bash
+PGHOST=localhost PGPORT=5433 PGDATABASE=hedera_stats PGUSER=postgres \
+  bash src/migrations/migrate.sh /path/to/src/migrations
+```
 
 > `pg_cron` scheduling (`src/jobs/pg_cron_metrics.sql`) is **not** applied by the
 > migration runner. It drives metric loading and belongs on the publisher.
