@@ -50,7 +50,8 @@ docker/
         └── 01-init.sh                # Extensions, FDW setup, loads /sql/*
 
 src/
-├── up.sql                      # Schema + extensions + metric table
+├── migrations/                 # Ordered schema bring-up (NNN-name.sql, hg-core convention)
+│   └── 001-init.sql            # Schema + metric/metric_description tables + type + helpers
 ├── metric_descriptions.sql     # Seeds metric_description metadata
 ├── metrics/                    # SQL metric functions by category
 │   ├── activity-engagement/    # active_accounts, new_accounts, total_accounts variants

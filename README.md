@@ -44,7 +44,7 @@ Set up your database:
 
 1. **Create schema and tables**:
    ```bash
-   psql -d your_database -f src/up.sql
+   psql -d your_database -f src/migrations/001-init.sql
    ```
 
 2. **Load metric functions and procedures**:
@@ -104,7 +104,8 @@ Schedule automated updates:
 ```
 hedera-stats/
 ├── src/
-│   ├── up.sql                      # Database schema setup (extensions, tables, types)
+│   ├── migrations/                 # Ordered schema bring-up (NNN-name.sql, hg-core convention)
+│   │   └── 001-init.sql            # Schema, tables, metric_total type, row helpers
 │   ├── metric_descriptions.sql     # Metric metadata (name, description, methodology)
 │   ├── grafana/                    # Grafana dashboard JSON exports
 │   │   └── Hgraph_Hedera-Stats-Grafana_V2.json

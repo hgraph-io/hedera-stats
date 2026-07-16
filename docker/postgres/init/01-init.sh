@@ -39,17 +39,14 @@ CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 CREATE EXTENSION IF NOT EXISTS http;
 SQL
 
-echo "[init] Applying /sql/up.sql..."
-$PSQL -f /sql/up.sql
-
-echo "[init] Creating ecosystem.metric_description table..."
-$PSQL <<SQL
-CREATE TABLE IF NOT EXISTS ecosystem.metric_description (
-  name text PRIMARY KEY,
-  description text,
-  methodology text
-);
-SQL
+echo "[init] Applying schema migrations from /sql/migrations/..."
+# hg-core convention: migrations/NNN-name.sql applied in filename order. Each is
+# idempotent, so re-running on an existing subscriber is a no-op.
+for f in /sql/migrations/[0-9][0-9][0-9]-*.sql; do
+  [ -f "$f" ] || continue
+  echo "[init]   applying $(basename "$f")..."
+  $PSQL -f "$f"
+done
 
 if [ -z "$MIRROR_NODE_HOST" ]; then
   echo "[init] WARN: MIRROR_NODE_HOST not set - skipping FDW setup. Mirror-node-backed metrics will not work."
