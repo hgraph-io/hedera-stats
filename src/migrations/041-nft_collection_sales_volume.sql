@@ -4,19 +4,6 @@
 
 BEGIN;
 
--- EXAMPLE QUERY: NFT collection sales volume
-
-SELECT
-  *
-FROM
-  ecosystem.nft_collection_sales_volume(
-    ARRAY[878200, 1350444, 2179656, 6178143,
-    6024491], 'day',
-    50
-);
-
---drop table ecosystem._nft_collection_sales_volume cascade;
-
 -- CREATE TABLE: NFT collection sales volume
 
 create table ecosystem._nft_collection_sales_volume(
