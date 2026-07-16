@@ -25,7 +25,8 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 - `pg_cron` schedules are installed on the stats DB rather than the mirror node
 - `src/jobs/pg_cron_metrics.sql` placeholder `<database_name>` is substituted with the stats DB name at init time
 - No longer requires superuser or extension-installation access on the mirror node database
-- Consolidated first-time schema bring-up into a single `src/migrations/001-init.sql` (hg-core `NNN-name.sql` convention, applied in filename order by the init script). Replaces the duplicated `src/up.sql` and orphaned `src/metrics/setup/up.sql`, and folds in the `metric_description` table and `metric_start_date`/`metric_end_date` helpers that the init script previously created inline
+- Consolidated first-time schema bring-up into a single `src/migrations/001-init.sql` (`NNN-name.sql` convention, applied in filename order). Replaces the duplicated `src/up.sql` and orphaned `src/metrics/setup/up.sql`, and folds in the `metric_description` table and `metric_start_date`/`metric_end_date` helpers that the init script previously created inline
+- Tracked migration runner (`src/migrations/migrate.sh`) with an `ecosystem.schema_migrations` table: applies unapplied `NNN-*.sql` migrations once each, in order. Runs during first-boot init and can be run standalone against a live subscriber (`docker compose exec stats-db bash /sql/migrations/migrate.sh`) to apply new metrics/schema changes without recreating the volume
 
 ### Removed
 

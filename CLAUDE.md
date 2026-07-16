@@ -50,7 +50,8 @@ docker/
         └── 01-init.sh                # Extensions, FDW setup, loads /sql/*
 
 src/
-├── migrations/                 # Ordered schema bring-up (NNN-name.sql, hg-core convention)
+├── migrations/                 # Ordered, tracked migrations (NNN-name.sql, applied once each)
+│   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
 │   └── 001-init.sql            # Schema + metric/metric_description tables + type + helpers
 ├── metric_descriptions.sql     # Seeds metric_description metadata
 ├── metrics/                    # SQL metric functions by category
@@ -80,15 +81,33 @@ docker compose up -d     # starts stats-db; init script runs on first start
 docker compose logs -f stats-db
 ```
 
+### Migrations
+
+Everything under `src/metrics/`, `src/metric_descriptions.sql`, and `src/jobs/`
+is the **frozen pre-migration baseline** — the metric set that existed when the
+migration system was introduced. It is bulk-loaded from those files on first-boot
+init only. **Do not add new metrics there.**
+
+Every change after the baseline — new metric, description, schema alter, index —
+is a new migration: `src/migrations/NNN-name.sql` (zero-padded, next number).
+The runner (`src/migrations/migrate.sh`) applies unapplied migrations in filename
+order and records each in `ecosystem.schema_migrations`, so each runs exactly
+once. Migrations are the sole apply path going forward — to change an object,
+add a new migration that `CREATE OR REPLACE`s it (never edit an applied
+migration; never re-add the object to the baseline, or it would clobber the
+migration on the next fresh init).
+
 ### Adding a New Metric
 
-1. Create function file in `src/metrics/<category>/<metric_name>.sql`
-2. Add entry to `src/metric_descriptions.sql` with name, description, methodology
-3. Add metric name to the `metrics` array in the relevant `src/jobs/load_metrics_<period>.sql` procedures
-4. Update `src/jobs/pg_cron_metrics.sql` if scheduling changes needed
-5. Update CHANGELOG.md under "Unreleased" section
+1. Create `src/migrations/NNN-<metric_name>.sql` containing everything the metric needs:
+   - `CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(...)`
+   - `INSERT INTO ecosystem.metric_description (...) ON CONFLICT (name) DO UPDATE ...`
+   - `CREATE OR REPLACE PROCEDURE` for any `load_metrics_<period>` change (copy the current baseline procedure and add the metric to its `metrics` array), and/or `cron.schedule_in_database(...)` if scheduling changes
+2. Update CHANGELOG.md under "Unreleased"
 
-On next `docker compose up` with a fresh volume, the new metric is picked up automatically. On an existing deployment, either re-run the relevant file via `docker compose exec stats-db psql -f /sql/metrics/...` or recreate the volume.
+Apply it:
+- **Fresh volume**: `docker compose up` runs migrate.sh automatically.
+- **Live subscriber**: `docker compose exec stats-db bash /sql/migrations/migrate.sh` — no volume recreation.
 
 ### Testing Metric Functions
 

@@ -104,7 +104,7 @@ Schedule automated updates:
 ```
 hedera-stats/
 ├── src/
-│   ├── migrations/                 # Ordered schema bring-up (NNN-name.sql, hg-core convention)
+│   ├── migrations/                 # Ordered, tracked migrations (NNN-name.sql, applied once each)
 │   │   └── 001-init.sql            # Schema, tables, metric_total type, row helpers
 │   ├── metric_descriptions.sql     # Metric metadata (name, description, methodology)
 │   ├── grafana/                    # Grafana dashboard JSON exports

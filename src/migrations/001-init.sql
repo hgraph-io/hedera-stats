@@ -7,8 +7,8 @@
 -- subscriber is a no-op. Metric functions, descriptions, jobs and pg_cron are
 -- loaded separately by docker/postgres/init/01-init.sh after this runs.
 --
--- Migration convention follows hg-core: migrations/NNN-name.sql, applied in
--- filename order. Add the next change as 002-*.sql rather than editing this file.
+-- Migration convention: migrations/NNN-name.sql, applied in filename order.
+-- Add the next change as 002-*.sql rather than editing this file.
 --
 -- Extensions (timestamp9, postgres_fdw, http, pg_cron) are created by
 -- 01-init.sh, not here — pg_cron lives in the "postgres" database while these

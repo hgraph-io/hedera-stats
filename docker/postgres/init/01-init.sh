@@ -6,10 +6,16 @@
 #   1. Creates extensions (timestamp9, postgres_fdw, http, pg_cron)
 #   2. Sets up FDW server to the mirror node using env vars
 #   3. Imports required mirror node tables as foreign tables
-#   4. Creates ecosystem schema, tables, types
-#   5. Loads all metric functions from /sql/metrics/
+#   4. Applies migrations/NNN-*.sql via migrate.sh (schema, types, and every
+#      metric/schema change added after the baseline), tracked so each runs once
+#   5. Loads the pre-migration baseline metric functions from /sql/metrics/
 #   6. Loads metric descriptions and hbar_total_supply
 #   7. Schedules pg_cron jobs
+#
+# After the baseline, every new metric / schema change is a new migration:
+# add src/migrations/NNN-name.sql. Apply it to a live subscriber without
+# recreating the volume via:
+#   docker compose exec stats-db bash /sql/migrations/migrate.sh
 #
 # Required env vars (from docker-compose .env):
 #   MIRROR_NODE_HOST, MIRROR_NODE_PORT, MIRROR_NODE_DB,
@@ -38,15 +44,6 @@ CREATE EXTENSION IF NOT EXISTS timestamp9;
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 CREATE EXTENSION IF NOT EXISTS http;
 SQL
-
-echo "[init] Applying schema migrations from /sql/migrations/..."
-# hg-core convention: migrations/NNN-name.sql applied in filename order. Each is
-# idempotent, so re-running on an existing subscriber is a no-op.
-for f in /sql/migrations/[0-9][0-9][0-9]-*.sql; do
-  [ -f "$f" ] || continue
-  echo "[init]   applying $(basename "$f")..."
-  $PSQL -f "$f"
-done
 
 if [ -z "$MIRROR_NODE_HOST" ]; then
   echo "[init] WARN: MIRROR_NODE_HOST not set - skipping FDW setup. Mirror-node-backed metrics will not work."
@@ -106,6 +103,14 @@ BEGIN
 END \$\$;
 SQL
 fi
+
+echo "[init] Applying migrations from /sql/migrations/..."
+# Runs after FDW setup so metric-function migrations can reference the foreign
+# tables. The runner tracks applied versions in ecosystem.schema_migrations, so
+# going forward every new metric / schema change is a new migrations/NNN-*.sql.
+# The metric functions and jobs below are the frozen pre-migration baseline and
+# are (re)loaded from /sql/metrics and /sql/jobs on first-boot init only.
+bash /sql/migrations/migrate.sh
 
 echo "[init] Loading metric functions from /sql/metrics/..."
 # avg_usd_conversion.sql still uses pg_http - kept in-database.
