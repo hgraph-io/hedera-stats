@@ -7,12 +7,16 @@
 # skipped, so this is safe to run on every boot AND standalone against a live
 # subscriber.
 #
-# Called by 01-init.sh during first-boot init. To update a LIVE subscriber
-# without recreating the volume, run it directly:
+# This IS the bring-up entrypoint. On first boot it is mounted into
+# /docker-entrypoint-initdb.d (see docker-compose.yml) and Postgres runs it
+# automatically; 001-init.sql creates the extensions, mirror-node types and
+# schema, then 002+ install the metrics. To update a LIVE subscriber without
+# recreating the volume, run it directly:
 #
 #   docker compose exec stats-db bash /sql/migrations/migrate.sh
 #
 # Requires (already set in the container): POSTGRES_USER, POSTGRES_DB.
+# First-boot application of 001 needs superuser (CREATE EXTENSION).
 # =====================================================
 
 set -euo pipefail
@@ -49,8 +53,8 @@ for f in "$MIG_DIR"/[0-9][0-9][0-9]-*.sql; do
   fi
 
   echo "[migrate]   apply $base"
-  # Swap public.interval_granularity (mirror-node-only enum) for text, matching
-  # the metric-function loader in 01-init.sh.
+  # Swap public.interval_granularity (mirror-node-only enum) for text. The
+  # baseline migrations are already pre-swapped; this covers hand-written ones.
   sed 's/public\.interval_granularity/text/g' "$f" | $PSQL
 
   # Record only after the migration succeeds (ON_ERROR_STOP aborts above on

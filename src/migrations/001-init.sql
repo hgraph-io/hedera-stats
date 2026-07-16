@@ -1,18 +1,38 @@
--- 001-init.sql — first-time schema bring-up for a stats subscriber.
+-- 001-init.sql — first-time bring-up for a stats subscriber.
 --
--- Single source of truth for the ecosystem schema skeleton: the schema, the two
--- persisted tables, the metric_total return type, and the row-helper functions.
--- Everything here is idempotent (CREATE ... IF NOT EXISTS / OR REPLACE, and a
--- duplicate_object guard on the composite type), so re-applying on an existing
--- subscriber is a no-op. Metric functions, descriptions, jobs and pg_cron are
--- loaded separately by docker/postgres/init/01-init.sh after this runs.
+-- The bootstrap migration: extensions, the mirror-node enum/domain types, and
+-- the ecosystem schema skeleton (persisted tables, metric_total return type,
+-- row-helper functions). Everything is idempotent (CREATE ... IF NOT EXISTS /
+-- OR REPLACE, duplicate_object guards), so re-applying is a no-op. The metric
+-- functions, descriptions, seed and load procedures follow in 002+.
 --
 -- Migration convention: migrations/NNN-name.sql, applied in filename order.
--- Add the next change as 002-*.sql rather than editing this file.
+-- Add the next change as a new NNN-*.sql rather than editing this file.
 --
--- Extensions (timestamp9, http) are created by 01-init.sh, not here.
+-- CREATE EXTENSION needs superuser, so the runner must apply this migration as a
+-- superuser on a fresh database (true in the container).
 --   https://github.com/optiver/timestamp9
 --   https://github.com/pramsey/pgsql-http
+
+-- Extensions.
+create extension if not exists timestamp9;
+create extension if not exists http;
+
+-- Mirror-node enum/domain types. The local tables the logical replication
+-- subscription replicates into reference these type names, so they must exist
+-- locally. Kept minimal — just enough for the replicated table schemas.
+do $$ begin create type entity_type as enum ('UNKNOWN','ACCOUNT','CONTRACT','FILE','TOPIC','TOKEN','SCHEDULE'); exception when duplicate_object then null; end $$;
+do $$ begin create type token_type as enum ('FUNGIBLE_COMMON','NON_FUNGIBLE_UNIQUE'); exception when duplicate_object then null; end $$;
+do $$ begin create type transfer_type as enum ('hbar','fungible_token','non_fungible_token','staking_reward'); exception when duplicate_object then null; end $$;
+do $$ begin create type errata_type as enum ('INSERT','DELETE'); exception when duplicate_object then null; end $$;
+do $$ begin create type token_pause_status as enum ('NOT_APPLICABLE','PAUSED','UNPAUSED'); exception when duplicate_object then null; end $$;
+do $$ begin create type token_supply_type as enum ('INFINITE','FINITE'); exception when duplicate_object then null; end $$;
+do $$ begin create domain nanos_timestamp  as bigint;   exception when duplicate_object then null; end $$;
+do $$ begin create domain entity_id        as bigint;   exception when duplicate_object then null; end $$;
+do $$ begin create domain entity_num       as integer;  exception when duplicate_object then null; end $$;
+do $$ begin create domain entity_realm_num as smallint; exception when duplicate_object then null; end $$;
+do $$ begin create domain entity_type_id   as char(1);  exception when duplicate_object then null; end $$;
+do $$ begin create domain hbar_tinybars    as bigint;   exception when duplicate_object then null; end $$;
 
 create schema if not exists ecosystem;
 

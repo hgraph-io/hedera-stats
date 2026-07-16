@@ -30,10 +30,11 @@ services:
       - "${STATS_DB_PORT:-5433}:5432"
     volumes:
       - stats-data:/var/lib/postgresql/data
-      # SQL files live in /sql inside the container; the init script reads
-      # them to load metric functions, descriptions, and cron jobs.
+      # Migrations live in /sql/migrations. On first boot Postgres runs anything
+      # in /docker-entrypoint-initdb.d, so migrate.sh is mounted there to apply
+      # them (001 creates extensions, types and schema; 002+ the metrics).
       - ./src:/sql:ro
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+      - ./src/migrations/migrate.sh:/docker-entrypoint-initdb.d/00-migrate.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${STATS_DB_USER:-postgres} -d ${STATS_DB_NAME:-hedera_stats}"]
       interval: 5s

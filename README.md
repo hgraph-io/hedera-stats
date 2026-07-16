@@ -50,7 +50,7 @@ under `src/migrations/`; the runner applies each once and tracks it in
 bash src/migrations/migrate.sh /path/to/src/migrations
 ```
 
-Under Docker this runs automatically on first boot (`docker/postgres/init/01-init.sh`).
+Under Docker this runs automatically on first boot (`migrate.sh` is mounted into `/docker-entrypoint-initdb.d`).
 To update a running database later, re-run the same command — already-applied
 migrations are skipped.
 

@@ -11,10 +11,9 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 - `total_erc1400_accounts` metric: rolling total of unique accounts holding an ERC-1400 token with a positive balance, sourced from the erc indexer's `token_account` table (contract_type `ERC_1400`); added to day, week, and month load procedures
 - `total_erc3643_accounts` metric: rolling total of unique accounts holding an ERC-3643 (T-REX) token with a positive balance, sourced from the erc indexer's `token_account` table (contract_type `ERC_3643`); added to day, week, and month load procedures. Returns an empty set until ERC-3643 tokens are deployed on Hedera
 - Standalone deployment via Docker Compose with a single `stats-db` Postgres container
-- Custom Postgres 16 image bundling `timestamp9`, `postgres_fdw`, `pg_http`, and `pg_cron`
-- `postgres_fdw` integration giving the stats DB read-only access to mirror node tables
-- Init script (`docker/postgres/init/01-init.sh`) that sets up extensions, FDW, imports foreign tables, loads metric functions, and schedules pg_cron jobs on first container start
-- Pre-declared mirror-node enum/domain types (`entity_type`, `token_type`, `nanos_timestamp`, `hbar_tinybars`, etc.) required for `IMPORT FOREIGN SCHEMA` against a standard Hedera mirror node
+- Custom Postgres 16 image bundling `timestamp9` and `pg_http`
+- Migration-driven first-boot bring-up: `src/migrations/migrate.sh` is mounted into `/docker-entrypoint-initdb.d` and applies all migrations (extensions, types, schema, metrics) on first container start; no separate init wrapper script
+- Mirror-node enum/domain types (`entity_type`, `token_type`, `nanos_timestamp`, `hbar_tinybars`, etc.) created in `001-init.sql`, referenced by the replicated mirror-node tables
 - `top_fungible_tokens_hts` metric (HBAR & DeFi): on-demand ranking of top HTS fungible tokens by a composite score (40% market cap + 40% DEX volume + 20% transactions), each component log-normalized then min-max scaled over a rolling window (default 24h). Phase 1 is on-demand only (no persistence or scheduled jobs)
 - `top_fungible_tokens_erc` metric (HBAR & DeFi): on-demand ranking of top ERC-20 fungible tokens by a composite score (60% transactions + 40% unique holders), each min-max scaled over a rolling window (default 720h / 30d). Activity-based rather than value-based: ERC-20 tokens on Hedera have no USD price source (per HG-2955) and their transfers do not settle in HBAR, so no market-cap or volume axis is possible. Sourced from the erc indexer's `token_transfer` table (contract_type `ERC_20`). Phase 1 is on-demand only (no persistence or scheduled jobs)
 
@@ -32,8 +31,9 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 ### Removed
 
 - `src/up.sql` and `src/metrics/setup/up.sql` — superseded by `src/migrations/001-init.sql`
-- pg_cron setup from the subscriber init (`docker/postgres/init/01-init.sh` no longer installs the `pg_cron` extension or applies `pg_cron_metrics.sql`). Cron drives metric loading and belongs on the publisher; `src/jobs/pg_cron_metrics.sql` is kept for that purpose
-- `postgres_fdw` and all foreign-table setup (`CREATE SERVER`, user mapping, `IMPORT FOREIGN SCHEMA`). Mirror-node tables now arrive via logical replication instead of foreign tables. `docker/postgres/init/01-init.sh` no longer creates the `postgres_fdw` extension or connects to the mirror node
+- `docker/postgres/init/` (the `01-init.sh` wrapper and `00-mirror-node-types.sql`). Bring-up is now migrations-only: extensions, mirror-node types and schema moved into `001-init.sql`, and `migrate.sh` is the first-boot entrypoint
+- pg_cron setup from the subscriber (no `pg_cron` extension or `pg_cron_metrics.sql` applied at bring-up). Cron drives metric loading and belongs on the publisher; `src/jobs/pg_cron_metrics.sql` is kept for that purpose
+- `postgres_fdw` and all foreign-table setup (`CREATE SERVER`, user mapping, `IMPORT FOREIGN SCHEMA`). Mirror-node tables now arrive via logical replication instead of foreign tables
 
 ## [2025-09-29]
 

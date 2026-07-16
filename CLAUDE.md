@@ -44,10 +44,9 @@ CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(
 ```
 docker/
 └── postgres/
-    ├── Dockerfile              # postgres:16 + timestamp9 + pg_cron + pg_http
-    └── init/
-        ├── 00-mirror-node-types.sql  # Enum/domain types the replicated tables reference
-        └── 01-init.sh                # Extensions + types, then runs migrate.sh
+    └── Dockerfile              # postgres:16 + timestamp9 + pg_http
+                                # (first boot mounts src/migrations/migrate.sh into
+                                #  /docker-entrypoint-initdb.d — see docker-compose.yml)
 
 src/
 ├── migrations/                 # SOLE apply path: NNN-name.sql, applied once each in order
