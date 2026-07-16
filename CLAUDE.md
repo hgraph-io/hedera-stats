@@ -77,7 +77,7 @@ Migrations run as a one-shot container that applies them to a network's database
 over the host Postgres socket, then exits:
 
 ```bash
-cp .env.example .env             # set POSTGRES_UID if host postgres isn't UID 999
+cp .env.example .env             # set POSTGRES_UID=$(id -u postgres) (26 RHEL, 999 Debian)
 docker compose build             # build the runner image once
 docker compose run --rm mainnet  # → 5433 / hedera_mainnet
 docker compose run --rm testnet  # → 5432 / hedera_testnet

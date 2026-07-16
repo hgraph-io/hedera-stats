@@ -57,7 +57,9 @@ docker compose run --rm testnet    # → 5432 / hedera_testnet
 
 Connection is credential-free: the host socket dir is bind-mounted and the
 container runs as the host postgres UID (peer auth). Set `POSTGRES_UID` in `.env`
-if the host `postgres` user isn't UID 999 (`id -u postgres`). Re-running is safe —
+to `id -u postgres` (26 on RHEL/Fedora, 999 on Debian) — it must match or peer
+auth fails. On SELinux-enforcing hosts the compose file already disables label
+confinement so the container can reach the host socket. Re-running is safe —
 already-applied migrations are skipped. After adding a migration, pass `--build`
 so the new file is baked into the image (`docker compose run --rm --build mainnet`).
 
