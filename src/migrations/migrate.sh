@@ -4,21 +4,18 @@
 # =====================================================
 # Applies migrations/NNN-name.sql in filename order, exactly once each, tracked
 # in ecosystem.schema_migrations. Idempotent: already-applied versions are
-# skipped, so this is safe to run on every boot AND standalone against a live
-# subscriber.
+# skipped, so it is safe to re-run any time.
 #
-# This IS the bring-up entrypoint. On first boot it is mounted into
-# /docker-entrypoint-initdb.d (see docker-compose.yml) and Postgres runs it
-# automatically; 001-init.sql creates the extensions, mirror-node types and
-# schema, then 002+ install the metrics. To update a LIVE subscriber without
-# recreating the volume, run it directly:
+# This is the CMD of the one-shot runner image (docker/migrate/Dockerfile). Run
+# it against a network's database via docker-compose:
 #
-#   docker compose exec stats-db bash /sql/migrations/migrate.sh
+#   docker compose run --rm mainnet
+#   docker compose run --rm testnet
 #
 # Connection is over the Unix socket (PGHOST defaults to /var/run/postgresql),
-# so no password is needed: the postgres image's pg_hba.conf trusts local
-# socket connections. Override the PG* vars below to point at a different
-# database (e.g. a TCP host for ad-hoc runs).
+# credential-free via peer auth (the container runs as the host postgres UID).
+# Compose sets PGPORT/PGDATABASE and PGOPTIONS (role) per network. Override the
+# PG* vars to point elsewhere (e.g. a TCP host with PGPASSWORD for ad-hoc runs).
 #
 # These migrations are pure schema SQL. Extensions (timestamp9, http) and the
 # logical replication subscription are external prerequisites provisioned by a

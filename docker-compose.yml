@@ -1,46 +1,43 @@
-services:
-  stats-db:
-    build:
-      context: ./docker/postgres
-    environment:
-      POSTGRES_DB: ${STATS_DB_NAME:-hedera_stats}
-      POSTGRES_USER: ${STATS_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${STATS_DB_PASSWORD:-postgres}
-      # Mirror node (publisher) connection. The logical replication subscription
-      # to the mirror node is provisioned outside this repo; these are kept for
-      # reference / use by that external setup. The init script does not read them.
-      MIRROR_NODE_HOST:
-      MIRROR_NODE_PORT:
-      MIRROR_NODE_DB:
-      MIRROR_NODE_USER:
-      MIRROR_NODE_PASSWORD:
-    env_file:
-      - .env
-    # pg_cron must be loaded in shared_preload_libraries. It lives in the
-    # default "postgres" db (which always exists) and uses
-    # cron.schedule_in_database() to target the stats database - see
-    # src/jobs/pg_cron_metrics.sql.
-    command:
-      - "postgres"
-      - "-c"
-      - "shared_preload_libraries=pg_cron"
-      - "-c"
-      - "cron.database_name=postgres"
-    ports:
-      - "${STATS_DB_PORT:-5433}:5432"
-    volumes:
-      - stats-data:/var/lib/postgresql/data
-      # Migrations live in /sql/migrations. On first boot Postgres runs anything
-      # in /docker-entrypoint-initdb.d, so migrate.sh is mounted there to apply
-      # them (001 creates extensions, types and schema; 002+ the metrics).
-      - ./src:/sql:ro
-      - ./src/migrations/migrate.sh:/docker-entrypoint-initdb.d/00-migrate.sh:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${STATS_DB_USER:-postgres} -d ${STATS_DB_NAME:-hedera_stats}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
+# One-shot migration runners — no long-running container. Each service builds
+# the slim runner image, applies pending migrations to the target network's
+# database over the Unix socket, and exits (restart: "no").
+#
+# Deploy:
+#   docker compose run --rm mainnet
+#   docker compose run --rm testnet
+#
+# Connection is credential-free: the host Postgres socket dir is bind-mounted
+# and the container runs as the host's postgres UID, so peer auth maps to the
+# postgres role. Objects are owned by the per-network ecosystem_owner group role
+# via PGOPTIONS. Set POSTGRES_UID to the host postgres user's UID (id -u postgres)
+# if it isn't the Debian default of 999.
+#
+# Prerequisites in the target DB (external, superuser): the timestamp9 and http
+# extensions, the logical replication subscription, and CREATE on the database
+# for the ecosystem_owner role.
 
-volumes:
-  stats-data:
+x-migrate: &migrate
+  build: .
+  restart: "no"
+  user: "${POSTGRES_UID:-999}"
+  volumes:
+    - /var/run/postgresql:/var/run/postgresql
+
+services:
+  mainnet:
+    <<: *migrate
+    environment:
+      PGHOST: /var/run/postgresql
+      PGPORT: "5433"
+      PGDATABASE: hedera_mainnet
+      PGUSER: postgres
+      PGOPTIONS: "-c role=hedera_mainnet_ecosystem_owner"
+
+  testnet:
+    <<: *migrate
+    environment:
+      PGHOST: /var/run/postgresql
+      PGPORT: "5432"
+      PGDATABASE: hedera_testnet
+      PGUSER: postgres
+      PGOPTIONS: "-c role=hedera_testnet_ecosystem_owner"

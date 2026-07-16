@@ -43,15 +43,11 @@ CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(
 ### Key Directories
 
 ```
-docker/
-└── postgres/
-    └── Dockerfile              # postgres:16 + timestamp9 + pg_http
-                                # (first boot mounts src/migrations/migrate.sh into
-                                #  /docker-entrypoint-initdb.d — see docker-compose.yml)
+Dockerfile                      # slim one-shot migration runner (psql + bash), CMD = migrate.sh
+docker-compose.yml              # per-network one-shot services (mainnet, testnet)
 
 src/
 ├── migrations/                 # SOLE apply path: NNN-name.sql, applied once each in order
-│   ├── deploy.sh               # Per-network wrapper: deploy.sh <mainnet|testnet> [--run]
 │   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
 │   ├── 001-init.sql            # Mirror-node types + schema + metric/metric_description tables + type + helpers
 │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
@@ -77,10 +73,13 @@ src/
 
 ### Running
 
+Migrations run as a one-shot container that applies them to a network's database
+over the host Postgres socket, then exits:
+
 ```bash
-cp .env.example .env     # fill in MIRROR_NODE_* credentials
-docker compose up -d     # starts stats-db; init script runs on first start
-docker compose logs -f stats-db
+cp .env.example .env             # set POSTGRES_UID if host postgres isn't UID 999
+docker compose run --rm mainnet  # → 5433 / hedera_mainnet
+docker compose run --rm testnet  # → 5432 / hedera_testnet
 ```
 
 ### Migrations
@@ -97,11 +96,10 @@ superuser before migrations run, are NOT managed here: the `timestamp9` and
 `http` extensions, and the logical replication subscription that populates the
 mirror-node tables.
 
-To deploy into a co-located network database, use `deploy.sh <mainnet|testnet>`
-(dry run) / `--run`. It connects over the Unix socket (peer auth as the postgres
-OS user, no password) and owns objects as the `hedera_<net>_ecosystem_owner`
-group role via `PGOPTIONS`. mainnet → 5433/`hedera_mainnet`; testnet →
-5432/`hedera_testnet`.
+Deploy with `docker compose run --rm <mainnet|testnet>` — a one-shot container
+that connects over the Unix socket (peer auth as the host postgres UID, no
+password) and owns objects as the `hedera_<net>_ecosystem_owner` group role via
+`PGOPTIONS`. mainnet → 5433/`hedera_mainnet`; testnet → 5432/`hedera_testnet`.
 
 Ordering matters: migrations run with `check_function_bodies` ON, so a function
 is validated against everything it references at CREATE time. A migration must
@@ -128,9 +126,8 @@ subscriber. Cron drives metric loading and belongs on the **publisher**.
 To change an existing object, add a NEW migration that `CREATE OR REPLACE`s it —
 never edit an applied migration.
 
-Apply it:
-- **Fresh volume**: `docker compose up` runs migrate.sh automatically.
-- **Live subscriber**: `docker compose exec stats-db bash /sql/migrations/migrate.sh` — no volume recreation.
+Apply it: `docker compose run --rm --build <mainnet|testnet>` (`--build` re-bakes
+the new file into the image; already-applied migrations are skipped).
 
 ### Testing Metric Functions
 

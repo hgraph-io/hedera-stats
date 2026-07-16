@@ -40,37 +40,31 @@ cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 
 ### Initial Configuration
 
-Set up your database. The schema and every metric live in ordered migrations
-under `src/migrations/`; the runner applies each once and tracks it in
-`ecosystem.schema_migrations`. The migrations are pure schema SQL — the
-`timestamp9` and `http` extensions and the logical replication subscription are
-external prerequisites, installed by a superuser beforehand.
+The schema and every metric live in ordered migrations under `src/migrations/`,
+applied once each and tracked in `ecosystem.schema_migrations`. They are pure
+schema SQL — the `timestamp9` and `http` extensions and the logical replication
+subscription are external prerequisites, installed by a superuser beforehand.
 
-**Deploy into a co-located network database** (ecosystem alongside the replicated
-mirror-node tables), over the Unix socket with objects owned by the per-network
-`ecosystem_owner` role:
+Migrations run as a **one-shot Docker container** (no long-running service): it
+applies pending migrations to a network's database over the host Postgres socket,
+then exits. Objects are owned by the per-network `ecosystem_owner` role.
 
 ```bash
-src/migrations/deploy.sh mainnet          # dry run — prints the plan
-src/migrations/deploy.sh mainnet --run    # execute (mainnet: 5433/hedera_mainnet)
-src/migrations/deploy.sh testnet --run    # testnet: 5432/hedera_testnet
+docker compose run --rm mainnet    # → 5433 / hedera_mainnet
+docker compose run --rm testnet    # → 5432 / hedera_testnet
 ```
 
-Under Docker this runs automatically on first boot (`migrate.sh` is mounted into
-`/docker-entrypoint-initdb.d`). It connects over the Unix socket, so no password
-is needed. To apply new migrations to a running container later:
+Connection is credential-free: the host socket dir is bind-mounted and the
+container runs as the host postgres UID (peer auth). Set `POSTGRES_UID` in `.env`
+if the host `postgres` user isn't UID 999 (`id -u postgres`). Re-running is safe —
+already-applied migrations are skipped. After adding a migration, pass `--build`
+so the new file is baked into the image (`docker compose run --rm --build mainnet`).
+
+To run outside Docker, invoke the runner directly with libpq vars:
 
 ```bash
-docker compose exec stats-db bash /sql/migrations/migrate.sh
-```
-
-Already-applied migrations are skipped. To run against a database outside Docker,
-override the libpq vars (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, and
-`PGPASSWORD` if not using socket/trust auth):
-
-```bash
-PGHOST=localhost PGPORT=5433 PGDATABASE=hedera_stats PGUSER=postgres \
-  bash src/migrations/migrate.sh /path/to/src/migrations
+PGHOST=/var/run/postgresql PGPORT=5433 PGDATABASE=hedera_mainnet PGUSER=postgres \
+  PGOPTIONS='-c role=hedera_mainnet_ecosystem_owner' bash src/migrations/migrate.sh
 ```
 
 > `pg_cron` scheduling (`src/jobs/pg_cron_metrics.sql`) is **not** applied by the
@@ -139,6 +133,8 @@ hedera-stats/
 │   │   ├── transactions/           # Transaction count metrics
 │   │   └── non-fungible-tokens/    # NFT sales metrics
 │   └── time-to-consensus/          # Prometheus ETL pipeline
+├── Dockerfile                      # Slim one-shot migration runner (psql + bash)
+├── docker-compose.yml              # Per-network one-shot services (mainnet, testnet)
 ├── CLAUDE.md                       # AI assistant guidance
 ├── WORKFLOW.md                     # Development workflow
 ├── CHANGELOG.md                    # Version history
