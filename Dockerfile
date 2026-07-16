@@ -1,7 +1,10 @@
 # One-shot schema-migration runner. Not a database — a slim image with psql
 # and bash that applies the migrations to a target Postgres over the Unix
 # socket, then exits. There is no long-running container.
-FROM debian:bookworm-slim
+#
+# Base image is fully qualified (docker.io/library/...) so podman does not
+# prompt for a registry during the build.
+FROM docker.io/library/debian:bookworm-slim
 WORKDIR /app
 
 # postgresql-client provides psql (used by migrate.sh); bash for the runner's
