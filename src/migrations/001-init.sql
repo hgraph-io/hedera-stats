@@ -29,7 +29,9 @@ create table if not exists ecosystem.metric (
     unique (name, period, timestamp_range)
 );
 
--- Metadata describing each metric (seeded by src/metric_descriptions.sql).
+-- Metadata describing each metric. The table shell is created here, but its
+-- rows are NOT seeded by these migrations — the publisher owns and updates
+-- metric_description, and it is replicated to subscribers.
 create table if not exists ecosystem.metric_description (
     name text primary key not null,
     description text,

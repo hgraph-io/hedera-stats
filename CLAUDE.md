@@ -51,7 +51,7 @@ src/
 │   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
 │   ├── 001-init.sql            # ecosystem schema + metric/metric_description tables + metric_total type + helpers
 │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
-├── metric_descriptions.sql     # Readable source (generated into a migration; not loaded at runtime)
+├── metric_descriptions.sql     # PUBLISHER reference (copy-paste on the publisher); NOT a migration
 ├── metrics/                    # Readable source for metric functions (generated into migrations)
 │   ├── activity-engagement/    # active_accounts, new_accounts, total_accounts variants
 │   ├── evm/                    # smart contracts, ECDSA real EVM accounts
@@ -108,9 +108,15 @@ come after the migrations that define the `ecosystem.*` functions it calls. The
 baseline migrations (`002`+) were generated in dependency order; keep new ones
 after their dependencies.
 
-`src/metrics/`, `src/metric_descriptions.sql`, and `src/jobs/*.sql` remain as the
-**readable source** the baseline migrations were generated from. They are NOT
-loaded at runtime — do not edit them expecting a change to take effect.
+`src/metrics/` and `src/jobs/*.sql` remain as the **readable source** the baseline
+migrations were generated from. They are NOT loaded at runtime — do not edit them
+expecting a change to take effect.
+
+`ecosystem.metric_description` is **publisher-controlled**: the migrations create
+the table shell (`001`) but never seed or update its rows. The publisher owns the
+description data and it is replicated to subscribers — do not add `INSERT`s into
+it in migrations. `src/metric_descriptions.sql` holds the description rows as a
+**publisher reference**: copy-paste / run it on the publisher to populate them.
 
 `src/jobs/pg_cron_metrics.sql` is **not** a migration and is not applied to a
 subscriber. Cron drives metric loading and belongs on the **publisher**.
@@ -120,8 +126,8 @@ subscriber. Cron drives metric loading and belongs on the **publisher**.
 1. Create `src/migrations/NNN-<metric_name>.sql` (next number, after any migration
    defining a function it calls) containing everything the metric needs:
    - `CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(...)`
-   - `INSERT INTO ecosystem.metric_description (...) ON CONFLICT (name) DO UPDATE ...`
    - a `CREATE OR REPLACE PROCEDURE` migration for any `load_metrics_<period>` change
+   - do NOT insert into `ecosystem.metric_description` — that table is publisher-controlled
 2. Update CHANGELOG.md under "Unreleased"
 
 To change an existing object, add a NEW migration that `CREATE OR REPLACE`s it —

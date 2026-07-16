@@ -111,11 +111,11 @@ Schedule automated updates:
 ```
 hedera-stats/
 ├── src/
+│   ├── metric_descriptions.sql     # PUBLISHER reference (run on the publisher); NOT a migration
 │   ├── migrations/                 # SOLE apply path: NNN-name.sql, applied once each in order
 │   │   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
 │   │   ├── 001-init.sql            # Schema, tables, metric_total type, row helpers
 │   │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
-│   ├── metric_descriptions.sql     # Readable source (generated into a migration; not loaded at runtime)
 │   ├── grafana/                    # Grafana dashboard JSON exports
 │   │   └── Hgraph_Hedera-Stats-Grafana_V2.json
 │   ├── jobs/                       # Job procedures and scheduling

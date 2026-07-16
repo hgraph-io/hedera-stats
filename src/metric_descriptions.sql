@@ -1,3 +1,9 @@
+-- Metric descriptions — PUBLISHER reference, NOT a migration.
+--
+-- ecosystem.metric_description is publisher-controlled and replicated to
+-- subscribers, so the migrations never seed it (they only create the table
+-- shell in 001-init.sql). Run this on the PUBLISHER to populate/update the
+-- descriptions; subscribers receive them via logical replication.
 insert into ecosystem.metric_description (name, description, methodology)
 values
     -- HBAR & DeFi
