@@ -49,7 +49,7 @@ docker-compose.yml              # per-network one-shot services (mainnet, testne
 src/
 ├── migrations/                 # SOLE apply path: NNN-name.sql, applied once each in order
 │   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
-│   ├── 001-init.sql            # Mirror-node types + schema + metric/metric_description tables + type + helpers
+│   ├── 001-init.sql            # ecosystem schema + metric/metric_description tables + metric_total type + helpers
 │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
 ├── metric_descriptions.sql     # Readable source (generated into a migration; not loaded at runtime)
 ├── metrics/                    # Readable source for metric functions (generated into migrations)
