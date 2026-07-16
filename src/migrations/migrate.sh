@@ -41,19 +41,23 @@ READONLY_ROLE="${READONLY_ROLE:-${PGDATABASE}_readonly}"
 PSQL="psql -v ON_ERROR_STOP=1 -v readonly_role=${READONLY_ROLE}"
 MIG_DIR="${1:-/sql/migrations}"
 
-# Ensure the schema + tracking table exist before anything is applied. Both are
-# idempotent; the schema is (re)created by 001-init.sql too, but the tracking
-# table must exist before we can record 001 itself.
-$PSQL <<'SQL'
-CREATE SCHEMA IF NOT EXISTS ecosystem;
-CREATE TABLE IF NOT EXISTS ecosystem.schema_migrations (
+# Tracking table. Defaults to ecosystem.schema_migrations; a separate migration
+# set (e.g. the public-schema matviews, applied as a different owner role) sets
+# SCHEMA_MIGRATIONS_TABLE=public.schema_migrations so it tracks independently.
+MIG_TABLE="${SCHEMA_MIGRATIONS_TABLE:-ecosystem.schema_migrations}"
+MIG_SCHEMA="${MIG_TABLE%%.*}"
+
+# Ensure the tracking schema + table exist before anything is applied.
+$PSQL <<SQL
+CREATE SCHEMA IF NOT EXISTS ${MIG_SCHEMA};
+CREATE TABLE IF NOT EXISTS ${MIG_TABLE} (
     version    text PRIMARY KEY,
     filename   text NOT NULL,
     applied_at timestamptz NOT NULL DEFAULT now()
 );
 SQL
 
-applied="$($PSQL -tAc 'SELECT version FROM ecosystem.schema_migrations')"
+applied="$($PSQL -tAc "SELECT version FROM ${MIG_TABLE}")"
 
 shopt -s nullglob
 count_applied=0
@@ -78,7 +82,7 @@ for f in "$MIG_DIR"/[0-9][0-9][0-9]-*.sql; do
   # ponytail: run-then-record is non-atomic — a migration that
   # half-applies then errors leaves partial state. Wrap the file body in
   # BEGIN/COMMIT inside the .sql itself if a migration needs all-or-nothing.
-  $PSQL -c "INSERT INTO ecosystem.schema_migrations (version, filename) VALUES ('${version}', '${base}')"
+  $PSQL -c "INSERT INTO ${MIG_TABLE} (version, filename) VALUES ('${version}', '${base}')"
   count_applied=$((count_applied + 1))
 done
 
