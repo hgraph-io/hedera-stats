@@ -50,6 +50,7 @@ applies pending migrations to a network's database over the host Postgres socket
 then exits. Objects are owned by the per-network `ecosystem_owner` role.
 
 ```bash
+docker compose build               # build the runner image once
 docker compose run --rm mainnet    # → 5433 / hedera_mainnet
 docker compose run --rm testnet    # → 5432 / hedera_testnet
 ```

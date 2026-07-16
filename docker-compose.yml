@@ -18,6 +18,10 @@
 
 x-migrate: &migrate
   build: .
+  # Local, fully-qualified image name so podman uses the just-built image
+  # instead of trying to pull an unqualified name (which prompts for a registry).
+  image: localhost/hedera-stats-migrate:latest
+  pull_policy: build
   restart: "no"
   user: "${POSTGRES_UID:-999}"
   volumes:
