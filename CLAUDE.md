@@ -15,7 +15,8 @@ Everything runs inside the stats database. There is no application layer - the c
 - **Stats DB** (Postgres, managed by Docker): a logical replication subscriber. Owns the `ecosystem` schema (metric tables, functions) and receives mirror-node tables (`public.transaction`, `public.token_transfer`, `erc.*`, ...) via a subscription.
 - **Mirror Node DB** (external): the publisher. The subscription and the local schema it replicates into are **provisioned outside this repo**; this container assumes those tables are present when metric migrations run.
 
-The stats container uses these Postgres extensions:
+These Postgres extensions must exist in the target database as an **external
+prerequisite** (installed by a superuser; the migrations do not create them):
 - `timestamp9` - nanosecond timestamp support (Hedera)
 - `http` (pg_http) - outbound HTTP calls for API-based metrics (exchange prices, DeFiLlama)
 
@@ -50,8 +51,9 @@ docker/
 
 src/
 ├── migrations/                 # SOLE apply path: NNN-name.sql, applied once each in order
+│   ├── deploy.sh               # Per-network wrapper: deploy.sh <mainnet|testnet> [--run]
 │   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
-│   ├── 001-init.sql            # Schema + metric/metric_description tables + type + helpers
+│   ├── 001-init.sql            # Mirror-node types + schema + metric/metric_description tables + type + helpers
 │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
 ├── metric_descriptions.sql     # Readable source (generated into a migration; not loaded at runtime)
 ├── metrics/                    # Readable source for metric functions (generated into migrations)
@@ -89,6 +91,17 @@ the seed, and each load procedure — is its own `NNN-name.sql` migration. The
 runner (`src/migrations/migrate.sh`) applies unapplied migrations in filename
 order and records each in `ecosystem.schema_migrations`, so each runs exactly
 once, on fresh boot and on live subscribers alike.
+
+The migrations are **pure schema SQL**. External prerequisites, provisioned by a
+superuser before migrations run, are NOT managed here: the `timestamp9` and
+`http` extensions, and the logical replication subscription that populates the
+mirror-node tables.
+
+To deploy into a co-located network database, use `deploy.sh <mainnet|testnet>`
+(dry run) / `--run`. It connects over the Unix socket (peer auth as the postgres
+OS user, no password) and owns objects as the `hedera_<net>_ecosystem_owner`
+group role via `PGOPTIONS`. mainnet → 5433/`hedera_mainnet`; testnet →
+5432/`hedera_testnet`.
 
 Ordering matters: migrations run with `check_function_bodies` ON, so a function
 is validated against everything it references at CREATE time. A migration must

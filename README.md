@@ -42,7 +42,19 @@ cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 
 Set up your database. The schema and every metric live in ordered migrations
 under `src/migrations/`; the runner applies each once and tracks it in
-`ecosystem.schema_migrations`.
+`ecosystem.schema_migrations`. The migrations are pure schema SQL — the
+`timestamp9` and `http` extensions and the logical replication subscription are
+external prerequisites, installed by a superuser beforehand.
+
+**Deploy into a co-located network database** (ecosystem alongside the replicated
+mirror-node tables), over the Unix socket with objects owned by the per-network
+`ecosystem_owner` role:
+
+```bash
+src/migrations/deploy.sh mainnet          # dry run — prints the plan
+src/migrations/deploy.sh mainnet --run    # execute (mainnet: 5433/hedera_mainnet)
+src/migrations/deploy.sh testnet --run    # testnet: 5432/hedera_testnet
+```
 
 Under Docker this runs automatically on first boot (`migrate.sh` is mounted into
 `/docker-entrypoint-initdb.d`). It connects over the Unix socket, so no password

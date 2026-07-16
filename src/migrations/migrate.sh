@@ -17,9 +17,12 @@
 #
 # Connection is over the Unix socket (PGHOST defaults to /var/run/postgresql),
 # so no password is needed: the postgres image's pg_hba.conf trusts local
-# socket connections. First-boot application of 001 needs superuser
-# (CREATE EXTENSION), which the default postgres role has. Override the PG*
-# vars below to point at a different database (e.g. a TCP host for ad-hoc runs).
+# socket connections. Override the PG* vars below to point at a different
+# database (e.g. a TCP host for ad-hoc runs).
+#
+# These migrations are pure schema SQL. Extensions (timestamp9, http) and the
+# logical replication subscription are external prerequisites provisioned by a
+# superuser before this runs.
 # =====================================================
 
 set -euo pipefail

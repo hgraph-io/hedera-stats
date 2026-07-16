@@ -9,14 +9,11 @@
 -- Migration convention: migrations/NNN-name.sql, applied in filename order.
 -- Add the next change as a new NNN-*.sql rather than editing this file.
 --
--- CREATE EXTENSION needs superuser, so the runner must apply this migration as a
--- superuser on a fresh database (true in the container).
+-- Prerequisites (provisioned OUTSIDE this migration set, by a superuser): the
+-- timestamp9 and http extensions must already exist in the target database.
+-- These migrations are pure schema SQL and do not create extensions.
 --   https://github.com/optiver/timestamp9
 --   https://github.com/pramsey/pgsql-http
-
--- Extensions.
-create extension if not exists timestamp9;
-create extension if not exists http;
 
 -- Mirror-node enum/domain types. The local tables the logical replication
 -- subscription replicates into reference these type names, so they must exist
