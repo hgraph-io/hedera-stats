@@ -40,31 +40,22 @@ cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 
 ### Initial Configuration
 
-Set up your database:
+Set up your database. The schema and every metric live in ordered migrations
+under `src/migrations/`; the runner applies each once and tracks it in
+`ecosystem.schema_migrations`.
 
-1. **Create schema and tables**:
-   ```bash
-   psql -d your_database -f src/migrations/001-init.sql
-   ```
+```bash
+# Applies 001-init.sql and every metric/schema migration, in order.
+# Runs against the database in POSTGRES_DB as POSTGRES_USER.
+bash src/migrations/migrate.sh /path/to/src/migrations
+```
 
-2. **Load metric functions and procedures**:
-   ```bash
-   # Load all metric functions from each category
-   psql -d your_database -f src/metrics/activity-engagement/*.sql
-   psql -d your_database -f src/metrics/evm/*.sql
-   psql -d your_database -f src/metrics/hbar-defi/*.sql
-   psql -d your_database -f src/metrics/network-performance/*.sql
-   psql -d your_database -f src/metrics/transactions/*.sql
-   psql -d your_database -f src/metrics/non-fungible-tokens/*.sql
+Under Docker this runs automatically on first boot (`docker/postgres/init/01-init.sh`).
+To update a running database later, re-run the same command — already-applied
+migrations are skipped.
 
-   # Load job procedures
-   psql -d your_database -f src/jobs/load_metrics_hour.sql
-   psql -d your_database -f src/jobs/load_metrics_day.sql
-   # ... (load other period procedures as needed)
-
-   # Load metric descriptions
-   psql -d your_database -f src/metric_descriptions.sql
-   ```
+> `pg_cron` scheduling (`src/jobs/pg_cron_metrics.sql`) is **not** applied by the
+> migration runner. It drives metric loading and belongs on the publisher.
 
 Configure environment variables (create `.env` file):
 
@@ -104,9 +95,11 @@ Schedule automated updates:
 ```
 hedera-stats/
 ├── src/
-│   ├── migrations/                 # Ordered, tracked migrations (NNN-name.sql, applied once each)
-│   │   └── 001-init.sql            # Schema, tables, metric_total type, row helpers
-│   ├── metric_descriptions.sql     # Metric metadata (name, description, methodology)
+│   ├── migrations/                 # SOLE apply path: NNN-name.sql, applied once each in order
+│   │   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
+│   │   ├── 001-init.sql            # Schema, tables, metric_total type, row helpers
+│   │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
+│   ├── metric_descriptions.sql     # Readable source (generated into a migration; not loaded at runtime)
 │   ├── grafana/                    # Grafana dashboard JSON exports
 │   │   └── Hgraph_Hedera-Stats-Grafana_V2.json
 │   ├── jobs/                       # Job procedures and scheduling

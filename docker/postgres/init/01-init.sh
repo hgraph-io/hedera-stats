@@ -3,37 +3,27 @@
 # Hedera Stats - Database Initialization
 # =====================================================
 # Runs once when the Postgres container starts for the first time:
-#   1. Creates extensions (timestamp9, postgres_fdw, http, pg_cron)
-#   2. Sets up FDW server to the mirror node using env vars
-#   3. Imports required mirror node tables as foreign tables
-#   4. Applies migrations/NNN-*.sql via migrate.sh (schema, types, and every
-#      metric/schema change added after the baseline), tracked so each runs once
-#   5. Loads the pre-migration baseline metric functions from /sql/metrics/
-#   6. Loads metric descriptions and hbar_total_supply
-#   7. Schedules pg_cron jobs
+#   1. Creates extensions (timestamp9, http)
+#   2. Creates mirror-node enum/domain types (00-mirror-node-types.sql)
+#   3. Applies migrations/NNN-*.sql via migrate.sh — the schema (001) and every
+#      metric / schema object, tracked so each runs exactly once
 #
-# After the baseline, every new metric / schema change is a new migration:
-# add src/migrations/NNN-name.sql. Apply it to a live subscriber without
-# recreating the volume via:
+# Every metric and schema object is a migration. To add or change one, add a new
+# src/migrations/NNN-name.sql; apply it to a live subscriber without recreating
+# the volume via:
 #   docker compose exec stats-db bash /sql/migrations/migrate.sh
 #
-# Required env vars (from docker-compose .env):
-#   MIRROR_NODE_HOST, MIRROR_NODE_PORT, MIRROR_NODE_DB,
-#   MIRROR_NODE_USER, MIRROR_NODE_PASSWORD
+# This container is a Postgres logical replication SUBSCRIBER. Mirror-node tables
+# arrive via a subscription to the mirror node (publisher); FDW is no longer used.
+#
+# pg_cron scheduling (src/jobs/pg_cron_metrics.sql) is intentionally NOT set up
+# here — it drives metric loading and belongs on the publisher, not a subscriber.
 # =====================================================
 
 set -e
 
 DB="${POSTGRES_DB:-hedera_stats}"
 PSQL="psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --dbname $DB"
-# pg_cron lives in the default "postgres" database (see docker-compose.yml
-# cron.database_name). All other extensions and metric objects live in $DB.
-PSQL_CRON="psql -v ON_ERROR_STOP=1 --username $POSTGRES_USER --dbname postgres"
-
-echo "[init] Installing pg_cron in the postgres database..."
-$PSQL_CRON <<SQL
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-SQL
 
 echo "[init] Running mirror node type definitions in $DB..."
 $PSQL -f /docker-entrypoint-initdb.d/00-mirror-node-types.sql
@@ -41,122 +31,19 @@ $PSQL -f /docker-entrypoint-initdb.d/00-mirror-node-types.sql
 echo "[init] Creating extensions in $DB..."
 $PSQL <<SQL
 CREATE EXTENSION IF NOT EXISTS timestamp9;
-CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 CREATE EXTENSION IF NOT EXISTS http;
 SQL
 
-if [ -z "$MIRROR_NODE_HOST" ]; then
-  echo "[init] WARN: MIRROR_NODE_HOST not set - skipping FDW setup. Mirror-node-backed metrics will not work."
-else
-  echo "[init] Setting up FDW to mirror node at $MIRROR_NODE_HOST:$MIRROR_NODE_PORT/$MIRROR_NODE_DB..."
-  $PSQL <<SQL
-CREATE SERVER IF NOT EXISTS mirror_node
-  FOREIGN DATA WRAPPER postgres_fdw
-  OPTIONS (
-    host '$MIRROR_NODE_HOST',
-    port '$MIRROR_NODE_PORT',
-    dbname '$MIRROR_NODE_DB',
-    fetch_size '50000'
-  );
-
-CREATE USER MAPPING IF NOT EXISTS FOR CURRENT_USER
-  SERVER mirror_node
-  OPTIONS (
-    user '$MIRROR_NODE_USER',
-    password '$MIRROR_NODE_PASSWORD'
-  );
-
--- Import required tables. Individual imports so a missing table doesn't
--- abort the whole load.
-DO \$\$
-DECLARE
-  t text;
-  tables text[] := ARRAY[
-    'entity', 'transaction', 'crypto_transfer',
-    'contract_result', 'contract_log',
-    'token', 'nft_transfer', 'nft', 'nft_history'
-  ];
-BEGIN
-  FOREACH t IN ARRAY tables LOOP
-    BEGIN
-      EXECUTE format(
-        'IMPORT FOREIGN SCHEMA public LIMIT TO (%I) FROM SERVER mirror_node INTO public',
-        t
-      );
-      RAISE NOTICE '  imported: %', t;
-    EXCEPTION WHEN OTHERS THEN
-      RAISE WARNING '  skipped %: %', t, SQLERRM;
-    END;
-  END LOOP;
-END \$\$;
-
--- Optionally import the erc schema if it exists on the mirror node
-DO \$\$
-BEGIN
-  CREATE SCHEMA IF NOT EXISTS erc;
-  BEGIN
-    IMPORT FOREIGN SCHEMA erc FROM SERVER mirror_node INTO erc;
-    RAISE NOTICE '  imported erc schema';
-  EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE '  erc schema not available on mirror node (ok)';
-  END;
-END \$\$;
-SQL
-fi
-
 echo "[init] Applying migrations from /sql/migrations/..."
-# Runs after FDW setup so metric-function migrations can reference the foreign
-# tables. The runner tracks applied versions in ecosystem.schema_migrations, so
-# going forward every new metric / schema change is a new migrations/NNN-*.sql.
-# The metric functions and jobs below are the frozen pre-migration baseline and
-# are (re)loaded from /sql/metrics and /sql/jobs on first-boot init only.
+# The runner applies each NNN-*.sql once and tracks applied versions in
+# ecosystem.schema_migrations. This installs the full schema + metric set and is
+# the sole apply path — every metric/schema object lives in a migration.
+#
+# Mirror-node tables (public.transaction, public.token_transfer, erc.*, ...) are
+# NOT set up here: they arrive on this subscriber via a Postgres logical
+# replication subscription to the mirror node (the publisher). That subscription
+# and the local table schema it replicates into must exist before the metric
+# migrations run, since they reference those tables with check_function_bodies on.
 bash /sql/migrations/migrate.sh
-
-echo "[init] Loading metric functions from /sql/metrics/..."
-# avg_usd_conversion.sql still uses pg_http - kept in-database.
-# hbar_total_supply.sql is a raw INSERT, handled after functions.
-# legacy/, setup/ directories are skipped.
-for pass in 1 2; do
-  echo "[init]   pass $pass..."
-  find /sql/metrics -type f -name '*.sql' \
-    -not -path '*/legacy/*' \
-    -not -path '*/setup/*' \
-    -not -name 'hbar_total_supply.sql' \
-    | while read -r file; do
-        # Swap public.interval_granularity (mirror-node-only enum) for text.
-        sed 's/public\.interval_granularity/text/g' "$file" \
-          | $PSQL >/dev/null 2>&1 && echo "[init]     loaded $(basename $file)" \
-          || true
-      done
-done
-
-echo "[init] Loading metric descriptions..."
-$PSQL -f /sql/metric_descriptions.sql || echo "[init]   (metric_descriptions had warnings - continuing)"
-
-echo "[init] Seeding hbar_total_supply..."
-$PSQL -f /sql/metrics/hbar-defi/hbar_total_supply.sql
-
-echo "[init] Loading load_metrics procedures..."
-for f in /sql/jobs/load_metrics_minute.sql \
-         /sql/jobs/load_metrics_hour.sql \
-         /sql/jobs/load_metrics_day.sql \
-         /sql/jobs/load_metrics_week.sql \
-         /sql/jobs/load_metrics_month.sql \
-         /sql/jobs/load_metrics_quarter.sql \
-         /sql/jobs/load_metrics_year.sql \
-         /sql/jobs/load_metrics_init.sql \
-         /sql/jobs/load_metrics_beta.sql \
-         /sql/jobs/network_tvl.sql \
-         /sql/jobs/stablecoin_marketcap.sql; do
-  if [ -f "$f" ]; then
-    $PSQL -f "$f" >/dev/null 2>&1 && echo "[init]   loaded $(basename $f)" || echo "[init]   skipped $(basename $f) (had errors)"
-  fi
-done
-
-echo "[init] Scheduling pg_cron jobs (in postgres db, targeting $DB)..."
-# pg_cron_metrics.sql uses <database_name> as a placeholder, and uses
-# cron.schedule_in_database() so jobs run in the stats database even
-# though pg_cron itself lives in the "postgres" database.
-sed "s/<database_name>/$DB/g" /sql/jobs/pg_cron_metrics.sql | $PSQL_CRON
 
 echo "[init] Done."

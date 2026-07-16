@@ -22,15 +22,18 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 - `top_non_fungible_tokens_erc` metric (Non-Fungible Tokens): validated and productionized the previously dead ERC-721 ranking. Fixed sales-volume attribution (the prior filter keyed on `sender_account_id`, which is NULL for pure-EVM transfers, silently zeroing all volume); volume is now the sum of positive `crypto_transfer` legs credited to non-system accounts (`entity_id > 1000`), computed once per transaction to avoid `nft_transfer`×`crypto_transfer` fan-out. Default window widened from 72h to 720h (30d) since ERC-721 sales are sparse. Return type changed from a composite TYPE to a real tracking TABLE so Hasura can track the function for GraphQL exposure (mirrors `top_fungible_tokens_hts`). On-demand only (no persistence or scheduled jobs)
 - Stats computation now runs in its own Postgres container instead of on the mirror node
-- `pg_cron` schedules are installed on the stats DB rather than the mirror node
-- `src/jobs/pg_cron_metrics.sql` placeholder `<database_name>` is substituted with the stats DB name at init time
+- The stats DB is a Postgres **logical replication subscriber** to the mirror node (publisher): mirror-node tables are replicated in as local tables. The subscription and the local schema it replicates into are provisioned outside this repo; the container assumes those tables are present when metric migrations run
 - No longer requires superuser or extension-installation access on the mirror node database
-- Consolidated first-time schema bring-up into a single `src/migrations/001-init.sql` (`NNN-name.sql` convention, applied in filename order). Replaces the duplicated `src/up.sql` and orphaned `src/metrics/setup/up.sql`, and folds in the `metric_description` table and `metric_start_date`/`metric_end_date` helpers that the init script previously created inline
-- Tracked migration runner (`src/migrations/migrate.sh`) with an `ecosystem.schema_migrations` table: applies unapplied `NNN-*.sql` migrations once each, in order. Runs during first-boot init and can be run standalone against a live subscriber (`docker compose exec stats-db bash /sql/migrations/migrate.sh`) to apply new metrics/schema changes without recreating the volume
+- Migration-based bring-up: `src/migrations/` is now the sole apply path. `001-init.sql` holds the schema skeleton (folding in the `metric_description` table and `metric_start_date`/`metric_end_date` helpers the init script used to create inline), and every metric function, the descriptions, the seed, and each load procedure is its own dependency-ordered `NNN-name.sql`. Replaces the duplicated `src/up.sql` and orphaned `src/metrics/setup/up.sql` and the bulk-loading of `src/metrics`/`src/jobs` by the init script
+- Migrations apply with `check_function_bodies` on, so baseline migrations are ordered by inter-function dependency (a function's migration follows the migrations defining the `ecosystem.*` functions it calls)
+- Tracked migration runner (`src/migrations/migrate.sh`) with an `ecosystem.schema_migrations` table: applies unapplied `NNN-*.sql` once each, in filename order. Runs during first-boot init and standalone against a live subscriber (`docker compose exec stats-db bash /sql/migrations/migrate.sh`) to apply changes without recreating the volume
+- `src/metrics/`, `src/metric_descriptions.sql`, and `src/jobs/*.sql` are retained as the readable source the baseline migrations were generated from; they are no longer loaded at runtime
 
 ### Removed
 
 - `src/up.sql` and `src/metrics/setup/up.sql` — superseded by `src/migrations/001-init.sql`
+- pg_cron setup from the subscriber init (`docker/postgres/init/01-init.sh` no longer installs the `pg_cron` extension or applies `pg_cron_metrics.sql`). Cron drives metric loading and belongs on the publisher; `src/jobs/pg_cron_metrics.sql` is kept for that purpose
+- `postgres_fdw` and all foreign-table setup (`CREATE SERVER`, user mapping, `IMPORT FOREIGN SCHEMA`). Mirror-node tables now arrive via logical replication instead of foreign tables. `docker/postgres/init/01-init.sh` no longer creates the `postgres_fdw` extension or connects to the mirror node
 
 ## [2025-09-29]
 

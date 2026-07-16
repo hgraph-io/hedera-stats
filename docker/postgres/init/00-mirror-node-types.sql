@@ -1,10 +1,10 @@
 -- =====================================================
 -- Mirror Node Types
 -- =====================================================
--- Mirror node tables use custom enum and domain types. To import them
--- as foreign tables via postgres_fdw, the same type names must exist
--- locally in the stats database. These definitions are kept minimal -
--- just enough for foreign table definitions to succeed.
+-- Mirror node tables use custom enum and domain types. The local tables that
+-- the logical replication subscription replicates into must reference the same
+-- type names, so those types must exist locally in the stats database. These
+-- definitions are kept minimal - just enough for the replicated table schemas.
 -- =====================================================
 
 -- Enum types

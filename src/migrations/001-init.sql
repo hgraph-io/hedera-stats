@@ -10,10 +10,7 @@
 -- Migration convention: migrations/NNN-name.sql, applied in filename order.
 -- Add the next change as 002-*.sql rather than editing this file.
 --
--- Extensions (timestamp9, postgres_fdw, http, pg_cron) are created by
--- 01-init.sh, not here — pg_cron lives in the "postgres" database while these
--- objects live in the stats database.
---   https://github.com/citusdata/pg_cron
+-- Extensions (timestamp9, http) are created by 01-init.sh, not here.
 --   https://github.com/optiver/timestamp9
 --   https://github.com/pramsey/pgsql-http
 

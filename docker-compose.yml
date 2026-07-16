@@ -6,7 +6,9 @@ services:
       POSTGRES_DB: ${STATS_DB_NAME:-hedera_stats}
       POSTGRES_USER: ${STATS_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${STATS_DB_PASSWORD:-postgres}
-      # Mirror node connection (used by init script to set up FDW)
+      # Mirror node (publisher) connection. The logical replication subscription
+      # to the mirror node is provisioned outside this repo; these are kept for
+      # reference / use by that external setup. The init script does not read them.
       MIRROR_NODE_HOST:
       MIRROR_NODE_PORT:
       MIRROR_NODE_DB:
