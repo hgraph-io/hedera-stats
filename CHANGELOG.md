@@ -10,11 +10,8 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 - `total_erc721_accounts` metric: rolling total of unique accounts holding an ERC-721 token with a positive balance, sourced from the erc indexer's `token_account` table (contract_type `ERC_721`); added to day, week, and month load procedures
 - `total_erc1400_accounts` metric: rolling total of unique accounts holding an ERC-1400 token with a positive balance, sourced from the erc indexer's `token_account` table (contract_type `ERC_1400`); added to day, week, and month load procedures
 - `total_erc3643_accounts` metric: rolling total of unique accounts holding an ERC-3643 (T-REX) token with a positive balance, sourced from the erc indexer's `token_account` table (contract_type `ERC_3643`); added to day, week, and month load procedures. Returns an empty set until ERC-3643 tokens are deployed on Hedera
-- Standalone deployment via Docker Compose with a single `stats-db` Postgres container
-- Custom Postgres 16 image bundling `timestamp9`, `postgres_fdw`, `pg_http`, and `pg_cron`
-- `postgres_fdw` integration giving the stats DB read-only access to mirror node tables
-- Init script (`docker/postgres/init/01-init.sh`) that sets up extensions, FDW, imports foreign tables, loads metric functions, and schedules pg_cron jobs on first container start
-- Pre-declared mirror-node enum/domain types (`entity_type`, `token_type`, `nanos_timestamp`, `hbar_tinybars`, etc.) required for `IMPORT FOREIGN SCHEMA` against a standard Hedera mirror node
+- One-shot Docker migration runner: a slim `psql`+`bash` image (`Dockerfile`) whose `CMD` runs `migrate.sh`, with per-network services in `docker-compose.yml` (`docker compose run --rm mainnet|testnet`). It applies pending migrations and exits — no long-running container or Postgres server in this repo
+- Mirror-node enum/domain types (`entity_type`, `token_type`, `nanos_timestamp`, `hbar_tinybars`, etc.) created in `001-init.sql`, referenced by the replicated mirror-node tables
 - `top_fungible_tokens_hts` metric (HBAR & DeFi): on-demand ranking of top HTS fungible tokens by a composite score (40% market cap + 40% DEX volume + 20% transactions), each component log-normalized then min-max scaled over a rolling window (default 24h). Phase 1 is on-demand only (no persistence or scheduled jobs)
 - `top_fungible_tokens_erc` metric (HBAR & DeFi): on-demand ranking of top ERC-20 fungible tokens by a composite score (60% transactions + 40% unique holders), each min-max scaled over a rolling window (default 720h / 30d). Activity-based rather than value-based: ERC-20 tokens on Hedera have no USD price source (per HG-2955) and their transfers do not settle in HBAR, so no market-cap or volume axis is possible. Sourced from the erc indexer's `token_transfer` table (contract_type `ERC_20`). Phase 1 is on-demand only (no persistence or scheduled jobs)
 
@@ -22,9 +19,20 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 - `top_non_fungible_tokens_erc` metric (Non-Fungible Tokens): validated and productionized the previously dead ERC-721 ranking. Fixed sales-volume attribution (the prior filter keyed on `sender_account_id`, which is NULL for pure-EVM transfers, silently zeroing all volume); volume is now the sum of positive `crypto_transfer` legs credited to non-system accounts (`entity_id > 1000`), computed once per transaction to avoid `nft_transfer`×`crypto_transfer` fan-out. Default window widened from 72h to 720h (30d) since ERC-721 sales are sparse. Return type changed from a composite TYPE to a real tracking TABLE so Hasura can track the function for GraphQL exposure (mirrors `top_fungible_tokens_hts`). On-demand only (no persistence or scheduled jobs)
 - Stats computation now runs in its own Postgres container instead of on the mirror node
-- `pg_cron` schedules are installed on the stats DB rather than the mirror node
-- `src/jobs/pg_cron_metrics.sql` placeholder `<database_name>` is substituted with the stats DB name at init time
+- The stats DB is a Postgres **logical replication subscriber** to the mirror node (publisher): mirror-node tables are replicated in as local tables. The subscription and the local schema it replicates into are provisioned outside this repo; the container assumes those tables are present when metric migrations run
 - No longer requires superuser or extension-installation access on the mirror node database
+- Migration-based bring-up: `src/migrations/` is now the sole apply path. `001-init.sql` holds the schema skeleton (folding in the `metric_description` table and `metric_start_date`/`metric_end_date` helpers the init script used to create inline), and every metric function, the descriptions, the seed, and each load procedure is its own dependency-ordered `NNN-name.sql`. Replaces the duplicated `src/up.sql` and orphaned `src/metrics/setup/up.sql` and the bulk-loading of `src/metrics`/`src/jobs` by the init script
+- Migrations apply with `check_function_bodies` on, so baseline migrations are ordered by inter-function dependency (a function's migration follows the migrations defining the `ecosystem.*` functions it calls)
+- Tracked migration runner (`src/migrations/migrate.sh`) with an `ecosystem.schema_migrations` table: applies unapplied `NNN-*.sql` once each, in filename order; safe to re-run (applied versions skipped). Connects over the Unix socket via libpq `PG*` env vars (`PGHOST` defaults to `/var/run/postgresql`); credential-free via peer auth. `PGOPTIONS` sets the owning role per network
+- `src/metrics/`, `src/metric_descriptions.sql`, and `src/jobs/*.sql` are retained as the readable source the baseline migrations were generated from; they are no longer loaded at runtime
+- Per-network one-shot services (`mainnet`, `testnet`) in `docker-compose.yml` that deploy the migrations into a co-located network mirror-node database. Bind-mount the host Postgres socket and run as the host postgres UID (peer auth, no password), owning objects as the per-network `hedera_<net>_ecosystem_owner` group role via `PGOPTIONS`. mainnet → 5433 / `hedera_mainnet`; testnet → 5432 / `hedera_testnet`. Requires (external, superuser) the `timestamp9` and `http` extensions and `CREATE` on the database for the ecosystem_owner role. Set `POSTGRES_UID` if the host postgres user isn't UID 999
+
+### Removed
+
+- `src/up.sql` and `src/metrics/setup/up.sql` — superseded by `src/migrations/001-init.sql`
+- The long-running Postgres container and its init scripts (`docker/postgres/`, the `01-init.sh` wrapper, `00-mirror-node-types.sql`) and the host `deploy.sh` wrapper. Bring-up is now migrations-only via the one-shot runner: mirror-node types and schema moved into `001-init.sql`. Extension creation was removed entirely — `timestamp9` and `http` are external prerequisites (the migrations are pure schema SQL)
+- pg_cron setup from the subscriber (no `pg_cron` extension or `pg_cron_metrics.sql` applied at bring-up). Cron drives metric loading and belongs on the publisher; `src/jobs/pg_cron_metrics.sql` is kept for that purpose
+- `postgres_fdw` and all foreign-table setup (`CREATE SERVER`, user mapping, `IMPORT FOREIGN SCHEMA`). Mirror-node tables now arrive via logical replication instead of foreign tables
 
 ## [2025-09-29]
 

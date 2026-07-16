@@ -4,22 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Hedera Stats is a PostgreSQL-based analytics platform for the Hedera network. It runs as a standalone Postgres container that connects to any Hedera mirror node database (read-only) via `postgres_fdw` and populates its own `ecosystem` schema with computed metrics. Deployable via Docker Compose.
+Hedera Stats is a PostgreSQL-based analytics platform for the Hedera network. It runs as a Postgres container that is a **logical replication subscriber** to a Hedera mirror node (the publisher): mirror-node tables are replicated in as local tables, and the container computes its own `ecosystem` schema of metrics on top of them. Deployable via Docker Compose.
 
 **Important**: Claude does not have direct database access. When SQL queries need to be executed or tested, ask the user to run them and provide the results.
 
 ## Architecture
 
-Everything runs inside the stats database. There is no application layer - the container is just Postgres with a set of extensions, metric functions, and pg_cron schedules.
+Everything runs inside the stats database. There is no application layer - the container is just Postgres with a set of extensions and metric functions.
 
-- **Stats DB** (Postgres, managed by Docker): owns the `ecosystem` schema (metric tables, functions, pg_cron jobs) and foreign tables proxying to the mirror node
-- **Mirror Node DB** (external, read-only): accessed via `postgres_fdw`, zero modifications needed
+- **Stats DB** (Postgres, managed by Docker): a logical replication subscriber. Owns the `ecosystem` schema (metric tables, functions) and receives mirror-node tables (`public.transaction`, `public.token_transfer`, `erc.*`, ...) via a subscription.
+- **Mirror Node DB** (external): the publisher. The subscription and the local schema it replicates into are **provisioned outside this repo**; this container assumes those tables are present when metric migrations run.
 
-The stats container uses these Postgres extensions:
+These Postgres extensions must exist in the target database as an **external
+prerequisite** (installed by a superuser; the migrations do not create them):
 - `timestamp9` - nanosecond timestamp support (Hedera)
-- `postgres_fdw` - foreign tables proxying to mirror node
 - `http` (pg_http) - outbound HTTP calls for API-based metrics (exchange prices, DeFiLlama)
-- `pg_cron` - scheduler for metric load procedures
+
+`pg_cron` (scheduling) belongs on the publisher, not this subscriber.
 
 ### Core Data Model
 
@@ -42,24 +43,23 @@ CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(
 ### Key Directories
 
 ```
-docker/
-└── postgres/
-    ├── Dockerfile              # postgres:16 + timestamp9 + pg_cron + pg_http
-    └── init/
-        ├── 00-mirror-node-types.sql  # Enum/domain types needed for FDW imports
-        └── 01-init.sh                # Extensions, FDW setup, loads /sql/*
+Dockerfile                      # slim one-shot migration runner (psql + bash), CMD = migrate.sh
+docker-compose.yml              # per-network one-shot services (mainnet, testnet)
 
 src/
-├── up.sql                      # Schema + extensions + metric table
-├── metric_descriptions.sql     # Seeds metric_description metadata
-├── metrics/                    # SQL metric functions by category
+├── migrations/                 # SOLE apply path: NNN-name.sql, applied once each in order
+│   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
+│   ├── 001-init.sql            # Mirror-node types + schema + metric/metric_description tables + type + helpers
+│   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
+├── metric_descriptions.sql     # Readable source (generated into a migration; not loaded at runtime)
+├── metrics/                    # Readable source for metric functions (generated into migrations)
 │   ├── activity-engagement/    # active_accounts, new_accounts, total_accounts variants
 │   ├── evm/                    # smart contracts, ECDSA real EVM accounts
 │   ├── hbar-defi/              # price, market cap, supply metrics (uses pg_http)
 │   ├── network-performance/    # network_fee, network_tps
 │   ├── transactions/           # new_*/total_* transaction counts
 │   └── non-fungible-tokens/    # NFT sales metrics
-├── jobs/                       # Load procedures and pg_cron scheduling
+├── jobs/                       # Load procedures (source) + pg_cron_metrics.sql (publisher-only)
 │   ├── load_metrics_hour.sql   # Hourly loader procedure
 │   ├── load_metrics_day.sql    # Daily loader procedure
 │   ├── network_tvl.sql         # DeFiLlama TVL (uses pg_http)
@@ -73,21 +73,61 @@ src/
 
 ### Running
 
+Migrations run as a one-shot container that applies them to a network's database
+over the host Postgres socket, then exits:
+
 ```bash
-cp .env.example .env     # fill in MIRROR_NODE_* credentials
-docker compose up -d     # starts stats-db; init script runs on first start
-docker compose logs -f stats-db
+cp .env.example .env             # set POSTGRES_UID if host postgres isn't UID 999
+docker compose run --rm mainnet  # → 5433 / hedera_mainnet
+docker compose run --rm testnet  # → 5432 / hedera_testnet
 ```
+
+### Migrations
+
+`src/migrations/` is the **sole apply path**. Every schema object and metric —
+the schema skeleton (`001-init.sql`), each metric function, the descriptions,
+the seed, and each load procedure — is its own `NNN-name.sql` migration. The
+runner (`src/migrations/migrate.sh`) applies unapplied migrations in filename
+order and records each in `ecosystem.schema_migrations`, so each runs exactly
+once, on fresh boot and on live subscribers alike.
+
+The migrations are **pure schema SQL**. External prerequisites, provisioned by a
+superuser before migrations run, are NOT managed here: the `timestamp9` and
+`http` extensions, and the logical replication subscription that populates the
+mirror-node tables.
+
+Deploy with `docker compose run --rm <mainnet|testnet>` — a one-shot container
+that connects over the Unix socket (peer auth as the host postgres UID, no
+password) and owns objects as the `hedera_<net>_ecosystem_owner` group role via
+`PGOPTIONS`. mainnet → 5433/`hedera_mainnet`; testnet → 5432/`hedera_testnet`.
+
+Ordering matters: migrations run with `check_function_bodies` ON, so a function
+is validated against everything it references at CREATE time. A migration must
+come after the migrations that define the `ecosystem.*` functions it calls. The
+baseline migrations (`002`+) were generated in dependency order; keep new ones
+after their dependencies.
+
+`src/metrics/`, `src/metric_descriptions.sql`, and `src/jobs/*.sql` remain as the
+**readable source** the baseline migrations were generated from. They are NOT
+loaded at runtime — do not edit them expecting a change to take effect.
+
+`src/jobs/pg_cron_metrics.sql` is **not** a migration and is not applied to a
+subscriber. Cron drives metric loading and belongs on the **publisher**.
 
 ### Adding a New Metric
 
-1. Create function file in `src/metrics/<category>/<metric_name>.sql`
-2. Add entry to `src/metric_descriptions.sql` with name, description, methodology
-3. Add metric name to the `metrics` array in the relevant `src/jobs/load_metrics_<period>.sql` procedures
-4. Update `src/jobs/pg_cron_metrics.sql` if scheduling changes needed
-5. Update CHANGELOG.md under "Unreleased" section
+1. Create `src/migrations/NNN-<metric_name>.sql` (next number, after any migration
+   defining a function it calls) containing everything the metric needs:
+   - `CREATE OR REPLACE FUNCTION ecosystem.<metric_name>(...)`
+   - `INSERT INTO ecosystem.metric_description (...) ON CONFLICT (name) DO UPDATE ...`
+   - a `CREATE OR REPLACE PROCEDURE` migration for any `load_metrics_<period>` change
+2. Update CHANGELOG.md under "Unreleased"
 
-On next `docker compose up` with a fresh volume, the new metric is picked up automatically. On an existing deployment, either re-run the relevant file via `docker compose exec stats-db psql -f /sql/metrics/...` or recreate the volume.
+To change an existing object, add a NEW migration that `CREATE OR REPLACE`s it —
+never edit an applied migration.
+
+Apply it: `docker compose run --rm --build <mainnet|testnet>` (`--build` re-bakes
+the new file into the image; already-applied migrations are skipped).
 
 ### Testing Metric Functions
 
@@ -125,8 +165,10 @@ SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
 -- Check loaded functions on stats DB
 SELECT proname FROM pg_proc WHERE pronamespace = 'ecosystem'::regnamespace;
 
--- Check foreign tables (mirror node connection)
-SELECT foreign_table_name FROM information_schema.foreign_tables;
+-- Check replicated mirror-node tables are present (from the logical subscription)
+SELECT schemaname, tablename FROM pg_tables WHERE schemaname IN ('public','erc') ORDER BY 1,2;
+-- Subscription status (if the subscription is on this DB)
+SELECT subname, subenabled FROM pg_subscription;
 
 -- View function definition
 SELECT pg_get_functiondef(p.oid) FROM pg_proc p
@@ -168,8 +210,8 @@ INT8RANGE(
 ## Important Notes
 
 - Pure SQL/PostgreSQL project - everything runs inside the database
-- Stats DB extensions: timestamp9, postgres_fdw, http, pg_cron
-- Mirror node: read-only access, no extensions or functions created there
+- Stats DB extensions: timestamp9, http
+- Mirror-node tables arrive via a logical replication subscription (provisioned outside this repo); the stats DB does not connect to the mirror node via FDW
 - Function names use `lowercase_snake_case` without category prefix
 - Always test on testnet before mainnet
 - CHANGELOG.md must be updated for all significant changes

@@ -40,31 +40,35 @@ cp prometheus-3.1.0.linux-amd64/promtool /usr/bin
 
 ### Initial Configuration
 
-Set up your database:
+The schema and every metric live in ordered migrations under `src/migrations/`,
+applied once each and tracked in `ecosystem.schema_migrations`. They are pure
+schema SQL — the `timestamp9` and `http` extensions and the logical replication
+subscription are external prerequisites, installed by a superuser beforehand.
 
-1. **Create schema and tables**:
-   ```bash
-   psql -d your_database -f src/up.sql
-   ```
+Migrations run as a **one-shot Docker container** (no long-running service): it
+applies pending migrations to a network's database over the host Postgres socket,
+then exits. Objects are owned by the per-network `ecosystem_owner` role.
 
-2. **Load metric functions and procedures**:
-   ```bash
-   # Load all metric functions from each category
-   psql -d your_database -f src/metrics/activity-engagement/*.sql
-   psql -d your_database -f src/metrics/evm/*.sql
-   psql -d your_database -f src/metrics/hbar-defi/*.sql
-   psql -d your_database -f src/metrics/network-performance/*.sql
-   psql -d your_database -f src/metrics/transactions/*.sql
-   psql -d your_database -f src/metrics/non-fungible-tokens/*.sql
+```bash
+docker compose run --rm mainnet    # → 5433 / hedera_mainnet
+docker compose run --rm testnet    # → 5432 / hedera_testnet
+```
 
-   # Load job procedures
-   psql -d your_database -f src/jobs/load_metrics_hour.sql
-   psql -d your_database -f src/jobs/load_metrics_day.sql
-   # ... (load other period procedures as needed)
+Connection is credential-free: the host socket dir is bind-mounted and the
+container runs as the host postgres UID (peer auth). Set `POSTGRES_UID` in `.env`
+if the host `postgres` user isn't UID 999 (`id -u postgres`). Re-running is safe —
+already-applied migrations are skipped. After adding a migration, pass `--build`
+so the new file is baked into the image (`docker compose run --rm --build mainnet`).
 
-   # Load metric descriptions
-   psql -d your_database -f src/metric_descriptions.sql
-   ```
+To run outside Docker, invoke the runner directly with libpq vars:
+
+```bash
+PGHOST=/var/run/postgresql PGPORT=5433 PGDATABASE=hedera_mainnet PGUSER=postgres \
+  PGOPTIONS='-c role=hedera_mainnet_ecosystem_owner' bash src/migrations/migrate.sh
+```
+
+> `pg_cron` scheduling (`src/jobs/pg_cron_metrics.sql`) is **not** applied by the
+> migration runner. It drives metric loading and belongs on the publisher.
 
 Configure environment variables (create `.env` file):
 
@@ -104,8 +108,11 @@ Schedule automated updates:
 ```
 hedera-stats/
 ├── src/
-│   ├── up.sql                      # Database schema setup (extensions, tables, types)
-│   ├── metric_descriptions.sql     # Metric metadata (name, description, methodology)
+│   ├── migrations/                 # SOLE apply path: NNN-name.sql, applied once each in order
+│   │   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
+│   │   ├── 001-init.sql            # Schema, tables, metric_total type, row helpers
+│   │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
+│   ├── metric_descriptions.sql     # Readable source (generated into a migration; not loaded at runtime)
 │   ├── grafana/                    # Grafana dashboard JSON exports
 │   │   └── Hgraph_Hedera-Stats-Grafana_V2.json
 │   ├── jobs/                       # Job procedures and scheduling
@@ -126,6 +133,8 @@ hedera-stats/
 │   │   ├── transactions/           # Transaction count metrics
 │   │   └── non-fungible-tokens/    # NFT sales metrics
 │   └── time-to-consensus/          # Prometheus ETL pipeline
+├── Dockerfile                      # Slim one-shot migration runner (psql + bash)
+├── docker-compose.yml              # Per-network one-shot services (mainnet, testnet)
 ├── CLAUDE.md                       # AI assistant guidance
 ├── WORKFLOW.md                     # Development workflow
 ├── CHANGELOG.md                    # Version history
