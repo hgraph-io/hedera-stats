@@ -1,5 +1,10 @@
 -- =====================================================
--- HBAR Total Supply Metric
+-- HBAR Total Supply Metric — PUBLISHER reference, NOT a migration.
+-- =====================================================
+-- ecosystem.metric is publisher-controlled and replicated to subscribers, so
+-- the migrations do not seed it. hbar_total_supply is a fixed constant with no
+-- load procedure — run this INSERT on the PUBLISHER to seed it; subscribers
+-- receive the row via logical replication.
 -- =====================================================
 -- Purpose: Insert the total HBAR supply (50 billion) into ecosystem.metric table
 --

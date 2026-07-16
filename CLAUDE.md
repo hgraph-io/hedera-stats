@@ -112,11 +112,15 @@ after their dependencies.
 migrations were generated from. They are NOT loaded at runtime — do not edit them
 expecting a change to take effect.
 
-`ecosystem.metric_description` is **publisher-controlled**: the migrations create
-the table shell (`001`) but never seed or update its rows. The publisher owns the
-description data and it is replicated to subscribers — do not add `INSERT`s into
-it in migrations. `src/metric_descriptions.sql` holds the description rows as a
-**publisher reference**: copy-paste / run it on the publisher to populate them.
+`ecosystem.metric` and `ecosystem.metric_description` are **publisher-controlled**:
+the migrations create the table shells (`001`) but never seed their rows. The
+publisher owns the data and it is replicated to subscribers — do not add data
+`INSERT`s into these tables in migrations (a seed would also clash with
+`copy_data` on a replicating subscriber). The seed SQL lives as **publisher
+references** to run on the publisher: `src/metric_descriptions.sql` (descriptions)
+and `src/metrics/hbar-defi/hbar_total_supply.sql` (the hbar_total_supply constant).
+The `load_metrics_*` procedures that compute-and-insert metric rows are fine —
+they are the publisher's loading mechanism, not a static migration seed.
 
 `src/jobs/pg_cron_metrics.sql` is **not** a migration and is not applied to a
 subscriber. Cron drives metric loading and belongs on the **publisher**.
