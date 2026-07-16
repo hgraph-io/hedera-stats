@@ -2,9 +2,13 @@
 # the slim runner image, applies pending migrations to the target network's
 # database over the Unix socket, and exits (restart: "no").
 #
-# Deploy:
-#   docker compose run --rm mainnet
-#   docker compose run --rm testnet
+# Deploy (ecosystem set, then the public-schema matview set):
+#   docker compose run --rm mainnet         &&  docker compose run --rm mainnet-public
+#   docker compose run --rm testnet         &&  docker compose run --rm testnet-public
+#
+# The *-public services apply src/public-migrations as the <db>_owner role (owns
+# the public schema, which ecosystem_owner can't write) and track separately in
+# public.schema_migrations. Run them AFTER the ecosystem set.
 #
 # Connection is credential-free: the host Postgres socket dir is bind-mounted
 # and the container runs as the host's postgres UID, so peer auth maps to the
@@ -54,3 +58,27 @@ services:
       PGDATABASE: hedera_testnet
       PGUSER: postgres
       PGOPTIONS: "-c role=hedera_testnet_ecosystem_owner"
+
+  # Public-schema matview set — applied as the <db>_owner role, tracked in
+  # public.schema_migrations (separate from the ecosystem set).
+  mainnet-public:
+    <<: *migrate
+    command: ["bash", "/sql/migrations/migrate.sh", "/sql/public-migrations"]
+    environment:
+      PGHOST: /var/run/postgresql
+      PGPORT: "5433"
+      PGDATABASE: hedera_mainnet
+      PGUSER: postgres
+      PGOPTIONS: "-c role=hedera_mainnet_owner"
+      SCHEMA_MIGRATIONS_TABLE: public.schema_migrations
+
+  testnet-public:
+    <<: *migrate
+    command: ["bash", "/sql/migrations/migrate.sh", "/sql/public-migrations"]
+    environment:
+      PGHOST: /var/run/postgresql
+      PGPORT: "5432"
+      PGDATABASE: hedera_testnet
+      PGUSER: postgres
+      PGOPTIONS: "-c role=hedera_testnet_owner"
+      SCHEMA_MIGRATIONS_TABLE: public.schema_migrations

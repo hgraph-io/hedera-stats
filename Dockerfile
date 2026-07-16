@@ -15,5 +15,7 @@ RUN apt-get update \
 
 # Migrations + runner, baked in. migrate.sh defaults to /sql/migrations.
 COPY src/migrations/ /sql/migrations/
+# Public-schema set (matviews), applied separately as the <db>_owner role.
+COPY src/public-migrations/ /sql/public-migrations/
 
 CMD ["bash", "/sql/migrations/migrate.sh"]
