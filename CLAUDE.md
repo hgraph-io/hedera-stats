@@ -51,20 +51,15 @@ src/
 │   ├── migrate.sh              # Runner: applies unapplied migrations, tracks in schema_migrations
 │   ├── 001-init.sql            # ecosystem schema + metric/metric_description tables + metric_total type + helpers
 │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
+├── public-migrations/          # Separate NNN-name.sql set for objects in the PUBLIC schema
 ├── metric_descriptions.sql     # PUBLISHER reference (copy-paste on the publisher); NOT a migration
-├── metrics/                    # Readable source for metric functions (generated into migrations)
-│   ├── activity-engagement/    # active_accounts, new_accounts, total_accounts variants
-│   ├── evm/                    # smart contracts, ECDSA real EVM accounts
-│   ├── hbar-defi/              # price, market cap, supply metrics (uses pg_http)
-│   ├── network-performance/    # network_fee, network_tps
-│   ├── transactions/           # new_*/total_* transaction counts
-│   └── non-fungible-tokens/    # NFT sales metrics
-├── jobs/                       # Load procedures (source) + pg_cron_metrics.sql (publisher-only)
-│   ├── load_metrics_hour.sql   # Hourly loader procedure
-│   ├── load_metrics_day.sql    # Daily loader procedure
-│   ├── network_tvl.sql         # DeFiLlama TVL (uses pg_http)
-│   ├── stablecoin_marketcap.sql # DeFiLlama stablecoin (uses pg_http)
-│   └── pg_cron_metrics.sql     # Cron job definitions
+├── metrics/                    # NOT the apply path — only the two files below remain
+│   ├── hbar-defi/
+│   │   └── hbar_total_supply.sql  # PUBLISHER reference (the hbar_total_supply constant)
+│   └── legacy/                 # Promotion queue: metrics that live on the publisher but
+│                               # have no migration yet. Promote into src/migrations/, don't apply from here
+├── jobs/
+│   └── pg_cron_metrics.sql     # PUBLISHER-only cron job definitions; NOT a migration
 ├── grafana/                    # Dashboard configs
 └── time-to-consensus/          # ETL for avg_time_to_consensus (uses Prometheus)
 ```
@@ -102,15 +97,30 @@ that connects over the Unix socket (peer auth as the host postgres UID, no
 password) and owns objects as the `hedera_<net>_ecosystem_owner` group role via
 `PGOPTIONS`. mainnet → 5433/`hedera_mainnet`; testnet → 5432/`hedera_testnet`.
 
-Ordering matters: migrations run with `check_function_bodies` ON, so a function
-is validated against everything it references at CREATE time. A migration must
-come after the migrations that define the `ecosystem.*` functions it calls. The
-baseline migrations (`002`+) were generated in dependency order; keep new ones
-after their dependencies.
+Ordering matters: migrations run with `check_function_bodies` ON, so a
+`LANGUAGE sql` function is name-resolved against everything it references at
+CREATE time. A migration must come after the migrations that define the
+`ecosystem.*` functions it calls. The baseline migrations (`002`+) were generated
+in dependency order; keep new ones after their dependencies.
 
-`src/metrics/` and `src/jobs/*.sql` remain as the **readable source** the baseline
-migrations were generated from. They are NOT loaded at runtime — do not edit them
-expecting a change to take effect.
+**`check_function_bodies` does not protect `LANGUAGE plpgsql`** — a plpgsql body
+only gets a syntax parse at CREATE time, so a procedure referencing a function
+no migration defines applies cleanly and fails at *call* time. That is how
+`014-load_metrics_beta.sql` shipped calling three `current_*` functions that
+existed only on the hand-applied publisher (closed by `083`). When adding a
+plpgsql loader, check its callees by hand — the migration succeeding proves
+nothing.
+
+`src/migrations/` is the only copy of every live object. The `src/metrics/` and
+`src/jobs/` trees that the baseline migrations were generated from have been
+removed — they duplicated the migrations with nothing keeping them in sync. What
+remains under those paths is not source to apply:
+
+- `src/metrics/legacy/` — the **promotion queue**: metrics present on the
+  hand-built publisher with no migration yet. Promote one by adding a migration
+  (see `081`, `083`), then delete the legacy file.
+- `src/metrics/hbar-defi/hbar_total_supply.sql` and `src/jobs/pg_cron_metrics.sql`
+  — publisher references, described below.
 
 `ecosystem.metric` and `ecosystem.metric_description` are **publisher-controlled**:
 the migrations create the table shells (`001`) but never seed their rows. The
