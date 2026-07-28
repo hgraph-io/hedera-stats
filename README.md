@@ -118,23 +118,13 @@ hedera-stats/
 │   │   └── 0NN-*.sql               # One migration per function / description / seed / load procedure
 │   ├── grafana/                    # Grafana dashboard JSON exports
 │   │   └── Hgraph_Hedera-Stats-Grafana_V2.json
-│   ├── jobs/                       # Job procedures and scheduling
-│   │   ├── load_metrics_minute.sql # High-frequency price updates
-│   │   ├── load_metrics_hour.sql   # Hourly loader (23 metrics)
-│   │   ├── load_metrics_day.sql    # Daily loader (38 metrics)
-│   │   ├── load_metrics_week.sql   # Weekly aggregations
-│   │   ├── load_metrics_month.sql  # Monthly aggregations
-│   │   ├── load_metrics_quarter.sql
-│   │   ├── load_metrics_year.sql
-│   │   ├── load_metrics_init.sql   # Backfill/initialization
-│   │   └── pg_cron_metrics.sql     # Cron job definitions
-│   ├── metrics/                    # Metric calculation functions
-│   │   ├── activity-engagement/    # Account activity metrics
-│   │   ├── evm/                    # Smart contract metrics
-│   │   ├── hbar-defi/              # Price & supply metrics
-│   │   ├── network-performance/    # Fee & TPS metrics
-│   │   ├── transactions/           # Transaction count metrics
-│   │   └── non-fungible-tokens/    # NFT sales metrics
+│   ├── public-migrations/          # Separate set for PUBLIC-schema objects (last-24h matviews)
+│   ├── jobs/
+│   │   └── pg_cron_metrics.sql     # PUBLISHER-only cron job definitions; NOT a migration
+│   ├── metrics/                    # NOT the apply path (see "Where the SQL lives" below)
+│   │   ├── hbar-defi/
+│   │   │   └── hbar_total_supply.sql   # PUBLISHER reference (hbar_total_supply constant)
+│   │   └── legacy/                 # Promotion queue: publisher objects with no migration yet
 │   └── time-to-consensus/          # Prometheus ETL pipeline
 ├── Dockerfile                      # Slim one-shot migration runner (psql + bash)
 ├── docker-compose.yml              # Per-network one-shot services (mainnet, testnet)
@@ -144,6 +134,27 @@ hedera-stats/
 ├── LICENSE
 └── README.md
 ```
+
+### Where the SQL lives
+
+`src/migrations/` is the only copy of every live `ecosystem` object, and
+`src/public-migrations/` the only copy of the `public`-schema ones. There is no
+parallel "readable source" tree: `src/metrics/` and `src/jobs/` once held a
+per-metric mirror of the migrations, but nothing kept the two in sync, so the
+duplicates were removed. To read a metric's definition, open its migration —
+or `\sf ecosystem.<metric_name>` against a deployed database.
+
+Three things under those paths are deliberately not migrations:
+
+| Path | What it is |
+|---|---|
+| `src/metric_descriptions.sql` | Publisher reference — `ecosystem.metric_description` rows are publisher-owned and replicated to subscribers |
+| `src/metrics/hbar-defi/hbar_total_supply.sql` | Publisher reference — the `hbar_total_supply` constant, same reason |
+| `src/jobs/pg_cron_metrics.sql` | Publisher-only cron schedule; cron drives metric loading and does not belong on a subscriber |
+
+`src/metrics/legacy/` is a **promotion queue**: objects that exist on the
+hand-built publisher (several tracked in Hasura) but have no migration yet.
+Promote one by writing a migration for it, then delete the legacy file.
 
 ## Architecture
 
@@ -303,7 +314,8 @@ SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
 \df ecosystem.<metric_name>
 
 -- Check if metric is in the load procedure's array
--- (review src/jobs/load_metrics_<period>.sql)
+-- (review src/migrations/*-load_metrics_<period>.sql, or the deployed
+--  definition: \sf ecosystem.load_metrics_<period>)
 
 -- Test the function directly
 SELECT * FROM ecosystem.<metric_name>(
