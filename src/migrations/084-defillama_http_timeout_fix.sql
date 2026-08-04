@@ -47,8 +47,8 @@ declare
     mexc_url text;
 
 begin
-    perform http_set_curlopt('CURLOPT_TIMEOUT_MS', '1000');
-    perform http_set_curlopt('CURLOPT_CONNECTTIMEOUT_MS', '1000');
+    perform http_set_curlopt('CURLOPT_TIMEOUT_MS', '5000');
+    perform http_set_curlopt('CURLOPT_CONNECTTIMEOUT_MS', '5000');
 
     orig_start_ms := (start_timestamp / 1e6)::bigint;
     orig_end_ms := (end_timestamp / 1e6)::bigint;
