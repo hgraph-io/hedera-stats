@@ -1,6 +1,6 @@
 # Hedera Stats: Shared Network Insights
 
-**[Hedera Stats](https://docs.hgraph.com/hedera-stats/introduction)** is a PostgreSQL-based analytics platform that provides quantitative statistical measurements for the Hedera network. The platform calculates and stores metrics using SQL functions and procedures, leveraging open-source methodologies, Hedera mirror node data, third-party data sources, and Hgraph's GraphQL API. These statistics include network performance metrics, NFT analytics, account activities, and economic indicators, enabling transparent and consistent analysis of the Hedera ecosystem.
+**[Hedera Stats](https://docs.hgraph.com/hedera-stats)** is a PostgreSQL-based analytics platform that provides quantitative statistical measurements for the Hedera network. The platform calculates and stores metrics using SQL functions and procedures, leveraging open-source methodologies, Hedera mirror node data, third-party data sources, and Hgraph's GraphQL API. These statistics include network performance metrics, NFT analytics, account activities, and economic indicators, enabling transparent and consistent analysis of the Hedera ecosystem.
 
 All metrics are pre-computed and stored in the `ecosystem.metric` table, with automated updates via pg_cron and visualization through Grafana dashboards.
 
