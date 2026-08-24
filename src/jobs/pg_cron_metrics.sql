@@ -15,6 +15,37 @@ SELECT
     '<database_name>'
   );
 
+-- EVERY 10 MINUTES
+
+-- Replace <tvl_minutes>/<marketcap_minutes> with the row for this instance:
+--   hedera_mainnet   2-59/10   3-59/10
+--   hedera_testnet   7-59/10   8-59/10
+-- The two networks are deliberately offset. Both fetch the same mainnet-wide
+-- DeFiLlama figures, so running them on the same minute makes both pay the same
+-- CDN cache miss; offset, whichever runs first warms the cache for the other.
+--
+-- The jobname must stay equal to the command: these two were created with the
+-- two-argument cron.schedule() on the publisher, which sets jobname = command.
+-- pg_cron upserts by jobname, so renaming them here creates a SECOND job and
+-- doubles the fetch rate instead of updating the existing one.
+
+SELECT
+  cron.schedule_in_database(
+    'call ecosystem.load_network_tvl()',
+    '<tvl_minutes> * * * *',
+    'call ecosystem.load_network_tvl()',
+    '<database_name>'
+  );
+
+SELECT
+  cron.schedule_in_database(
+    'call ecosystem.load_stablecoin_marketcap()',
+    '<marketcap_minutes> * * * *',
+    'call ecosystem.load_stablecoin_marketcap()',
+    '<database_name>'
+  );
+
+
 -- EVERY 1 HOUR
 
 SELECT 
