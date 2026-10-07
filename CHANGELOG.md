@@ -6,6 +6,8 @@ All notable changes to the Hedera Stats project since August 1, 2024.
 
 ### Added
 
+- Grafana dashboard: new collapsible "☰ ERC Tokens" row under EVM and Contracts — ERC contract counts by standard (ERC-20/721/1155/1400/3643), cumulative holders per standard from the `total_erc*_accounts` metrics (log scale), and the top 10 ERC-721 collections by live NFT count. Also repointed the "Total ERC-20/ERC-721 Tokens" stat from the removed `erc_beta_token_aggregate` GraphQL field to `erc_token_aggregate`; it was returning an error
+
 - `src/jobs/pg_cron_metrics.sql` now carries the two DeFiLlama fetch jobs, which existed only as hand-created jobs on the publisher and were invisible to anyone reading the repo: `call ecosystem.load_network_tvl()` at `2-59/10 * * * *` and `call ecosystem.load_stablecoin_marketcap()` at `3-59/10 * * * *`, offset between instances so the two networks do not collide on the same CDN cache miss (mainnet `2-59/10` / `3-59/10`, testnet `7-59/10` / `8-59/10` — they were identical before, which is why both databases failed on the same run every time). Both were created with the two-argument `cron.schedule()`, so their jobname *is* the command string; pg_cron upserts by jobname, so giving them conventional `ecosystem_*` jobnames here would create a second job and double the fetch rate rather than update the existing one
 
 - Migration `086-erc_metrics_quarter_year.sql`: adds the five `total_erc*_accounts` metrics to `load_metrics_quarter` and `load_metrics_year`. `053`–`057` define the functions and `015`/`019`/`021` already load them at day, week and month, but quarter and year were missed, so two of the five periods the metric spec calls for could never populate. Only the metrics array changes in either procedure

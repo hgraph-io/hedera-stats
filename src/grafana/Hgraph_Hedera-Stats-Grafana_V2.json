@@ -15162,7 +15162,7 @@
           "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
           "url_options": {
             "body_content_type": "application/json",
-            "body_graphql_query": "query ERCStats {\n  erc20_count: erc_beta_token_aggregate(where: {contract_type: {_eq: \"ERC_20\"}}) {\n    aggregate {\n      count\n    }\n  }\n  erc721_count: erc_beta_token_aggregate(where: {contract_type: {_eq: \"ERC_721\"}}) {\n    aggregate {\n      count\n    }\n  }\n}",
+            "body_graphql_query": "query ERCStats {\n  erc20_count: erc_token_aggregate(where: {contract_type: {_eq: \"ERC_20\"}}) {\n    aggregate {\n      count\n    }\n  }\n  erc721_count: erc_token_aggregate(where: {contract_type: {_eq: \"ERC_721\"}}) {\n    aggregate {\n      count\n    }\n  }\n}",
             "body_type": "graphql",
             "data": "",
             "method": "POST"
@@ -21350,12 +21350,503 @@
       "type": "row"
     },
     {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 85
+      },
+      "id": 279,
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_HGRAPH}"
+          },
+          "id": 280,
+          "type": "bargauge",
+          "transparent": true,
+          "title": "ERC Contracts by Standard",
+          "description": "Count of indexed EVM token contracts on Hedera by detected token standard.",
+          "gridPos": {
+            "h": 9,
+            "w": 8,
+            "x": 0,
+            "y": 70000
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "fixedColor": "#874bff",
+                "mode": "fixed"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "locale"
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "horizontal",
+            "namePlacement": "left",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "/^contracts$/",
+              "values": true
+            },
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color",
+            "legend": {
+              "showLegend": false,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "minVizHeight": 16,
+            "minVizWidth": 8,
+            "maxVizHeight": 300
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "standard",
+                  "text": "standard",
+                  "type": "string"
+                },
+                {
+                  "selector": "contracts",
+                  "text": "contracts",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_HGRAPH}"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "[\n  { \"standard\": \"ERC-20\", \"contracts\": data.erc_20.aggregate.count },\n  { \"standard\": \"ERC-721\", \"contracts\": data.erc_721.aggregate.count },\n  { \"standard\": \"ERC-1155\", \"contracts\": data.erc_1155.aggregate.count },\n  { \"standard\": \"ERC-1400\", \"contracts\": data.erc_1400.aggregate.count },\n  { \"standard\": \"ERC-3643\", \"contracts\": data.erc_3643.aggregate.count }\n]\n",
+              "source": "url",
+              "type": "graphql",
+              "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_graphql_query": "query {\n  erc_20: erc_token_aggregate(where: {contract_type: {_eq: \"ERC_20\"}}) { aggregate { count } }\n  erc_721: erc_token_aggregate(where: {contract_type: {_eq: \"ERC_721\"}}) { aggregate { count } }\n  erc_1155: erc_token_aggregate(where: {contract_type: {_eq: \"ERC_1155\"}}) { aggregate { count } }\n  erc_1400: erc_token_aggregate(where: {contract_type: {_eq: \"ERC_1400\"}}) { aggregate { count } }\n  erc_3643: erc_token_aggregate(where: {contract_type: {_eq: \"ERC_3643\"}}) { aggregate { count } }\n}\n",
+                "body_type": "graphql",
+                "data": "",
+                "method": "POST"
+              }
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_HGRAPH}"
+          },
+          "description": "Cumulative unique accounts holding each ERC token standard (total_erc*_accounts metrics).",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "opacity",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "smooth",
+                "lineStyle": {
+                  "fill": "solid"
+                },
+                "lineWidth": 1,
+                "pointSize": 4,
+                "scaleDistribution": {
+                  "type": "log",
+                  "log": 10
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green"
+                  }
+                ]
+              },
+              "unit": "locale"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 9,
+            "w": 16,
+            "x": 8,
+            "y": 70000
+          },
+          "id": 281,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "timezone": [
+              "utc"
+            ],
+            "tooltip": {
+              "hideZeros": false,
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "total",
+                  "text": "ERC-20 Holders",
+                  "type": "number"
+                },
+                {
+                  "selector": "end_date",
+                  "text": "",
+                  "timestampFormat": "",
+                  "type": "timestamp"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_HGRAPH}"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "data.metric.({ \"total\": total, \"end_date\": end_date })",
+              "source": "url",
+              "type": "graphql",
+              "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_graphql_query": "query {\n  metric: ecosystem_metric(\n    order_by: { end_date: desc_nulls_last }\n    limit: 5000\n    where: {\n      name: { _eq: \"total_erc20_accounts\" }\n      period: { _eq: \"$__customInterval(30d,hour,184d,day,365d,week,1800d,month)\" }\n      end_date: { _gte: \"${__from:date:iso}\", _lte: \"${__to:date:iso}\" }\n    }\n  ) {\n    total\n    end_date\n  }\n}\n",
+                "body_type": "graphql",
+                "data": "",
+                "method": "POST"
+              }
+            },
+            {
+              "columns": [
+                {
+                  "selector": "total",
+                  "text": "ERC-721 Holders",
+                  "type": "number"
+                },
+                {
+                  "selector": "end_date",
+                  "text": "",
+                  "timestampFormat": "",
+                  "type": "timestamp"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_HGRAPH}"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "B",
+              "root_selector": "data.metric.({ \"total\": total, \"end_date\": end_date })",
+              "source": "url",
+              "type": "graphql",
+              "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_graphql_query": "query {\n  metric: ecosystem_metric(\n    order_by: { end_date: desc_nulls_last }\n    limit: 5000\n    where: {\n      name: { _eq: \"total_erc721_accounts\" }\n      period: { _eq: \"$__customInterval(30d,hour,184d,day,365d,week,1800d,month)\" }\n      end_date: { _gte: \"${__from:date:iso}\", _lte: \"${__to:date:iso}\" }\n    }\n  ) {\n    total\n    end_date\n  }\n}\n",
+                "body_type": "graphql",
+                "data": "",
+                "method": "POST"
+              }
+            },
+            {
+              "columns": [
+                {
+                  "selector": "total",
+                  "text": "ERC-1155 Holders",
+                  "type": "number"
+                },
+                {
+                  "selector": "end_date",
+                  "text": "",
+                  "timestampFormat": "",
+                  "type": "timestamp"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_HGRAPH}"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "C",
+              "root_selector": "data.metric.({ \"total\": total, \"end_date\": end_date })",
+              "source": "url",
+              "type": "graphql",
+              "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_graphql_query": "query {\n  metric: ecosystem_metric(\n    order_by: { end_date: desc_nulls_last }\n    limit: 5000\n    where: {\n      name: { _eq: \"total_erc1155_accounts\" }\n      period: { _eq: \"$__customInterval(30d,hour,184d,day,365d,week,1800d,month)\" }\n      end_date: { _gte: \"${__from:date:iso}\", _lte: \"${__to:date:iso}\" }\n    }\n  ) {\n    total\n    end_date\n  }\n}\n",
+                "body_type": "graphql",
+                "data": "",
+                "method": "POST"
+              }
+            },
+            {
+              "columns": [
+                {
+                  "selector": "total",
+                  "text": "ERC-1400 Holders",
+                  "type": "number"
+                },
+                {
+                  "selector": "end_date",
+                  "text": "",
+                  "timestampFormat": "",
+                  "type": "timestamp"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_HGRAPH}"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "D",
+              "root_selector": "data.metric.({ \"total\": total, \"end_date\": end_date })",
+              "source": "url",
+              "type": "graphql",
+              "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_graphql_query": "query {\n  metric: ecosystem_metric(\n    order_by: { end_date: desc_nulls_last }\n    limit: 5000\n    where: {\n      name: { _eq: \"total_erc1400_accounts\" }\n      period: { _eq: \"$__customInterval(30d,hour,184d,day,365d,week,1800d,month)\" }\n      end_date: { _gte: \"${__from:date:iso}\", _lte: \"${__to:date:iso}\" }\n    }\n  ) {\n    total\n    end_date\n  }\n}\n",
+                "body_type": "graphql",
+                "data": "",
+                "method": "POST"
+              }
+            },
+            {
+              "columns": [
+                {
+                  "selector": "total",
+                  "text": "ERC-3643 Holders",
+                  "type": "number"
+                },
+                {
+                  "selector": "end_date",
+                  "text": "",
+                  "timestampFormat": "",
+                  "type": "timestamp"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_HGRAPH}"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "E",
+              "root_selector": "data.metric.({ \"total\": total, \"end_date\": end_date })",
+              "source": "url",
+              "type": "graphql",
+              "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_graphql_query": "query {\n  metric: ecosystem_metric(\n    order_by: { end_date: desc_nulls_last }\n    limit: 5000\n    where: {\n      name: { _eq: \"total_erc3643_accounts\" }\n      period: { _eq: \"$__customInterval(30d,hour,184d,day,365d,week,1800d,month)\" }\n      end_date: { _gte: \"${__from:date:iso}\", _lte: \"${__to:date:iso}\" }\n    }\n  ) {\n    total\n    end_date\n  }\n}\n",
+                "body_type": "graphql",
+                "data": "",
+                "method": "POST"
+              }
+            }
+          ],
+          "title": "ERC Token Holders by Standard (Log)",
+          "transparent": true,
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_HGRAPH}"
+          },
+          "id": 282,
+          "type": "table",
+          "transparent": true,
+          "title": "Top ERC-721 Collections (by NFTs minted)",
+          "description": "EVM-native NFT collections ranked by live (non-burned) token count.",
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 70009
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                }
+              },
+              "unit": "locale"
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false,
+              "reducer": [
+                "sum"
+              ],
+              "fields": ""
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "name",
+                  "text": "Collection",
+                  "type": "string"
+                },
+                {
+                  "selector": "symbol",
+                  "text": "Symbol",
+                  "type": "string"
+                },
+                {
+                  "selector": "address",
+                  "text": "EVM Address",
+                  "type": "string"
+                },
+                {
+                  "selector": "nfts",
+                  "text": "NFTs",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_HGRAPH}"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "data.top.({ \"name\": name, \"symbol\": symbol, \"address\": token_evm_address, \"nfts\": nft_aggregate.aggregate.count })",
+              "source": "url",
+              "type": "graphql",
+              "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_graphql_query": "query {\n  top: erc_token(\n    where: { contract_type: { _eq: \"ERC_721\" } }\n    order_by: { nft_aggregate: { count: desc } }\n    limit: 10\n  ) {\n    name\n    symbol\n    token_evm_address\n    nft_aggregate(where: { deleted: { _eq: false } }) { aggregate { count } }\n  }\n}\n",
+                "body_type": "graphql",
+                "data": "",
+                "method": "POST"
+              }
+            }
+          ]
+        },
+        {
+          "description": "",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 24,
+            "x": 0,
+            "y": 70018
+          },
+          "id": 283,
+          "options": {
+            "code": {
+              "language": "plaintext",
+              "showLineNumbers": false,
+              "showMiniMap": false
+            },
+            "content": "---\n\nView methodology for the `total_erc*_accounts` metrics in the [Hedera Stats docs →](https://docs.hgraph.com/category/evm--smart-contracts)",
+            "mode": "markdown"
+          },
+          "pluginVersion": "11.6.0",
+          "title": "",
+          "transparent": true,
+          "type": "text"
+        }
+      ],
+      "title": "☰ ERC Tokens",
+      "type": "row"
+    },
+    {
       "description": "",
       "gridPos": {
         "h": 3,
         "w": 24,
         "x": 0,
-        "y": 85
+        "y": 86
       },
       "id": 249,
       "options": {
@@ -21376,7 +21867,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 89
       },
       "id": 225,
       "options": {
@@ -21459,7 +21950,7 @@
         "h": 7,
         "w": 5,
         "x": 0,
-        "y": 93
+        "y": 94
       },
       "id": 191,
       "interval": "1d",
@@ -21608,7 +22099,7 @@
         "h": 7,
         "w": 9,
         "x": 5,
-        "y": 93
+        "y": 94
       },
       "id": 193,
       "options": {
@@ -21857,7 +22348,7 @@
         "h": 7,
         "w": 10,
         "x": 14,
-        "y": 93
+        "y": 94
       },
       "hideTimeOverride": true,
       "id": 252,
@@ -21942,7 +22433,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 100
+        "y": 101
       },
       "id": 236,
       "options": {
@@ -21964,7 +22455,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 101
+        "y": 102
       },
       "id": 19,
       "panels": [
@@ -24384,7 +24875,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 102
+        "y": 103
       },
       "id": 27,
       "panels": [
@@ -26804,7 +27295,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 103
+        "y": 104
       },
       "id": 35,
       "panels": [
@@ -29224,7 +29715,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 104
+        "y": 105
       },
       "id": 51,
       "panels": [
@@ -31644,7 +32135,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 105
+        "y": 106
       },
       "id": 59,
       "panels": [
@@ -34064,7 +34555,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 106
+        "y": 107
       },
       "id": 227,
       "options": {
@@ -34086,7 +34577,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 107
+        "y": 108
       },
       "id": 68,
       "panels": [
@@ -35135,7 +35626,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 108
+        "y": 109
       },
       "id": 77,
       "panels": [
@@ -36236,7 +36727,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 109
+        "y": 110
       },
       "id": 86,
       "panels": [
@@ -37285,7 +37776,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 110
+        "y": 111
       },
       "id": 123,
       "options": {
@@ -37307,7 +37798,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 111
+        "y": 112
       },
       "id": 95,
       "panels": [
@@ -39729,7 +40220,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 112
+        "y": 113
       },
       "id": 104,
       "panels": [
@@ -42187,7 +42678,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 113
+        "y": 114
       },
       "id": 113,
       "panels": [
@@ -44609,7 +45100,7 @@
         "h": 3,
         "w": 24,
         "x": 0,
-        "y": 114
+        "y": 115
       },
       "id": 136,
       "options": {
@@ -44630,7 +45121,7 @@
         "h": 5,
         "w": 24,
         "x": 0,
-        "y": 117
+        "y": 118
       },
       "id": 272,
       "options": {
@@ -44651,7 +45142,7 @@
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 122
+        "y": 123
       },
       "id": 271,
       "options": {
@@ -44672,7 +45163,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 128
+        "y": 129
       },
       "id": 269,
       "options": {
@@ -44693,7 +45184,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 137
+        "y": 138
       },
       "id": 273,
       "options": {
@@ -44714,7 +45205,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 139
+        "y": 140
       },
       "id": 274,
       "options": {
@@ -44736,7 +45227,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 141
+        "y": 142
       },
       "id": 270,
       "options": {
