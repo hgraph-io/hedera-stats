@@ -1,11 +1,20 @@
-create or replace function ecosystem.account_growth(
-    period text,
-    start_timestamp bigint default 0,
-    end_timestamp bigint default CURRENT_TIMESTAMP::timestamp9::bigint
-)
-returns setof ecosystem . metric_total
-language sql stable
-as $$
+-- 090-account_growth.sql — account_growth metric: retail accounts created per period (non-contract
+-- accounts that have never paid a developer-type transaction).
+--
+-- Promoted from the publishers, where this function existed with no migration
+-- (identical on the mainnet and testnet publishers unless noted below).
+-- Body copied verbatim from the mainnet publisher's definition so that
+-- applying it there is a no-op; behaviour changes belong in later migrations.
+--
+-- Reads mirror-node tables; on the publishers it is driven by the legacy
+-- load_metrics / load_hourly_metrics loaders. Grants come from 082's
+-- ALTER DEFAULT PRIVILEGES.
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION ecosystem.account_growth(period text, start_timestamp bigint DEFAULT 0, end_timestamp bigint DEFAULT ((CURRENT_TIMESTAMP)::public.timestamp9)::bigint) RETURNS SETOF ecosystem.metric_total
+    LANGUAGE sql STABLE
+    AS $$
 with retail_created_accounts as (
     select
         id,
@@ -39,3 +48,4 @@ from retail_created_accounts_per_period
 
 $$;
 
+COMMIT;
