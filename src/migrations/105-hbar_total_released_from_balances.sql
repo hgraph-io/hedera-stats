@@ -18,6 +18,13 @@
 -- node REST /api/v1/network/supply released_supply on both networks; Σ(stored +
 -- treasury balances) is exactly 5e18 at boundaries in 2024, 2025 and 2026.
 --
+-- This is the mirror node's own formula (rest-java NetworkServiceImpl.getSupply):
+-- current supply = 50B − Σ entity.balance over the unreleased-supply accounts
+-- (NetworkProperties.unreleasedSupplyAccounts, the same ranges as below); historical
+-- supply = 50B − Σ each account's latest account_balance row. It adds no transfers
+-- after the snapshot, so its historical answer is as of the snapshot; the top-up here
+-- makes ours exact at the period boundary.
+--
 -- Behaviour notes:
 --   * Emits every COMPLETE period in the window with a closed range
 --     [period_start, period_start + 1 period), so the newest complete period is
@@ -77,6 +84,14 @@ released as (
         from account_balance ab
         where ab.account_id = a.account_id
           and ab.consensus_timestamp < p.pe::timestamp9::bigint
+          -- account_balance is partitioned by month and the importer writes a FULL
+          -- snapshot as the first one of each partition (deduplicated after that), so
+          -- every account's latest row is never older than the start of the previous
+          -- month. Same lower bound as the mirror node REST supply query
+          -- (NetworkServiceImpl.getFirstDayOfMonth(max, -1)); lets each lookup prune to
+          -- two partitions instead of all of them.
+          and ab.consensus_timestamp >= (date_trunc('month', p.pe - interval '1 microsecond')
+                                         - interval '1 month')::timestamp9::bigint
         order by ab.consensus_timestamp desc
         limit 1
     ) s on true
