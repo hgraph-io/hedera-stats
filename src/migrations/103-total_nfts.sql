@@ -1,11 +1,20 @@
-create or replace function ecosystem.total_nfts(
-  period text,
-  start_timestamp bigint default 0,
-  end_timestamp bigint default CURRENT_TIMESTAMP::timestamp9::bigint
-)
-returns setof ecosystem . metric_total
-language sql stable
-as $$
+-- 103-total_nfts.sql — total_nfts metric: non-deleted NFTs per period, from nft and nft_history
+-- ownership ranges.
+--
+-- Promoted from the publishers, where this function existed with no migration
+-- (identical on the mainnet and testnet publishers unless noted below).
+-- Body copied verbatim from the mainnet publisher's definition so that
+-- applying it there is a no-op; behaviour changes belong in later migrations.
+--
+-- Reads mirror-node tables; on the publishers it is driven by the legacy
+-- load_metrics / load_hourly_metrics loaders. Grants come from 082's
+-- ALTER DEFAULT PRIVILEGES.
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION ecosystem.total_nfts(period text, start_timestamp bigint DEFAULT 0, end_timestamp bigint DEFAULT ((CURRENT_TIMESTAMP)::public.timestamp9)::bigint) RETURNS SETOF ecosystem.metric_total
+    LANGUAGE sql STABLE
+    AS $$
 
 with all_entries as (
   select
@@ -47,3 +56,5 @@ total
 from active_nfts_per_period
 
 $$;
+
+COMMIT;
