@@ -84,8 +84,10 @@ SELECT
 SELECT 
   cron.schedule_in_database(
     'ecosystem_load_metrics_week', 
-    -- Weekly on Sunday at 12:02am UTC
-    '2 0 * * 0', 
+    -- Weekly on Monday at 12:02am UTC. date_trunc('week') starts weeks on Monday,
+    -- so a Monday run is the first one that can store the week that just ended
+    -- (a Sunday run stops at the previous Monday, a week later than needed).
+    '2 0 * * 1', 
     'call ecosystem.load_metrics_week()', 
     '<database_name>'
   );
