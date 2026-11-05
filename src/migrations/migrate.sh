@@ -47,6 +47,30 @@ MIG_DIR="${1:-/sql/migrations}"
 MIG_TABLE="${SCHEMA_MIGRATIONS_TABLE:-ecosystem.schema_migrations}"
 MIG_SCHEMA="${MIG_TABLE%%.*}"
 
+# Refuse tracking-table placements that would break a logical-replication publisher.
+# On a publisher, `ecosystem_pub` publishes the whole ecosystem schema: a tracking
+# table created there would replicate its rows into each subscriber's own
+# ecosystem.schema_migrations and stop replication on the first duplicate key.
+# Adopted publishers therefore track in ecosystem_admin.schema_migrations; running
+# with the default there would also miss every recorded version and re-run 001+.
+refusal="$($PSQL -tAc "
+SELECT CASE
+  WHEN EXISTS (SELECT 1 FROM pg_publication WHERE puballtables)
+    THEN 'a FOR ALL TABLES publication exists, so ${MIG_TABLE} would be published'
+  WHEN EXISTS (SELECT 1 FROM pg_publication_namespace pn
+               JOIN pg_namespace n ON n.oid = pn.pnnspid
+               WHERE n.nspname = '${MIG_SCHEMA}')
+    THEN 'a publication covers schema ${MIG_SCHEMA}, so ${MIG_TABLE} would be published'
+  WHEN '${MIG_TABLE}' = 'ecosystem.schema_migrations'
+       AND to_regclass('ecosystem_admin.schema_migrations') IS NOT NULL
+    THEN 'this database tracks in ecosystem_admin.schema_migrations'
+  ELSE '' END")"
+if [ -n "$refusal" ]; then
+  echo "[migrate] refusing to run: ${refusal}." >&2
+  echo "[migrate] On a publisher set SCHEMA_MIGRATIONS_TABLE=ecosystem_admin.schema_migrations." >&2
+  exit 1
+fi
+
 # Ensure the tracking schema + table exist before anything is applied.
 $PSQL <<SQL
 CREATE SCHEMA IF NOT EXISTS ${MIG_SCHEMA};

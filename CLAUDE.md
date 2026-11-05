@@ -97,6 +97,22 @@ that connects over the Unix socket (peer auth as the host postgres UID, no
 password) and owns objects as the `hedera_<net>_ecosystem_owner` group role via
 `PGOPTIONS`. mainnet → 5433/`hedera_mainnet`; testnet → 5432/`hedera_testnet`.
 
+**Publishers are migration-managed too**, but track applied versions in
+`ecosystem_admin.schema_migrations`, outside the published schema: `ecosystem_pub`
+publishes all of `ecosystem`, so a tracking table there would replicate into each
+subscriber's own `ecosystem.schema_migrations` and stop replication on the first
+duplicate key. On a publisher host set
+`SCHEMA_MIGRATIONS_TABLE=ecosystem_admin.schema_migrations` in `.env`; `migrate.sh`
+refuses to run if the tracking table would be published, or if the database
+already tracks in `ecosystem_admin`. The publishers were adopted once (2026-11) by
+a single-transaction run of all migrations after a rehearsal ending in ROLLBACK;
+`085` stayed pending on testnet until its cron no longer calls
+`load_daily_metrics`.
+
+Before changing a loader, diff its metric array against what the publishers load:
+a metric missing from a migration's array silently stops loading when that
+migration reaches a publisher (that is what `106` fixed for `avg_usd_conversion`).
+
 Ordering matters: migrations run with `check_function_bodies` ON, so a
 `LANGUAGE sql` function is name-resolved against everything it references at
 CREATE time. A migration must come after the migrations that define the
@@ -116,9 +132,9 @@ nothing.
 removed — they duplicated the migrations with nothing keeping them in sync. What
 remains under those paths is not source to apply:
 
-- `src/metrics/legacy/` — the **promotion queue**: metrics present on the
-  hand-built publisher with no migration yet. Promote one by adding a migration
-  (see `081`, `083`), then delete the legacy file.
+- `src/metrics/legacy/` — the **promotion queue**: metrics present on a publisher
+  with no migration yet. Promote one by adding a migration (see `081`, `083`,
+  `088`–`103`), then delete the legacy file.
 - `src/metrics/hbar-defi/hbar_total_supply.sql` and `src/jobs/pg_cron_metrics.sql`
   — publisher references, described below.
 

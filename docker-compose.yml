@@ -49,6 +49,8 @@ services:
       PGDATABASE: hedera_mainnet
       PGUSER: postgres
       PGOPTIONS: "-c role=hedera_mainnet_ecosystem_owner"
+      # Publishers track outside the published ecosystem schema (see .env.example).
+      SCHEMA_MIGRATIONS_TABLE: ${SCHEMA_MIGRATIONS_TABLE:-ecosystem.schema_migrations}
 
   testnet:
     <<: *migrate
@@ -58,6 +60,8 @@ services:
       PGDATABASE: hedera_testnet
       PGUSER: postgres
       PGOPTIONS: "-c role=hedera_testnet_ecosystem_owner"
+      # Publishers track outside the published ecosystem schema (see .env.example).
+      SCHEMA_MIGRATIONS_TABLE: ${SCHEMA_MIGRATIONS_TABLE:-ecosystem.schema_migrations}
 
   # Public-schema matview set — applied as the <db>_owner role, tracked in
   # public.schema_migrations (separate from the ecosystem set).
