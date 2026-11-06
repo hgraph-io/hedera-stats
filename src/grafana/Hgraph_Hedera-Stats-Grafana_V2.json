@@ -21882,6 +21882,137 @@
           ]
         },
         {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_HGRAPH}"
+          },
+          "id": 286,
+          "type": "table",
+          "transparent": true,
+          "title": "Top ERC-20 Tokens (30-day activity)",
+          "description": "ERC-20 tokens ranked by on-chain activity over the last 30 days: 60% distinct transactions, 40% unique receiving addresses, each min-max scaled. ERC-20s on Hedera have no USD price source, so there is no market-cap or volume component (unlike the HTS leaderboard).",
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 70021
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                }
+              },
+              "unit": "locale"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Score"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "percentunit"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Rank"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 60
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false,
+              "reducer": [
+                "sum"
+              ],
+              "fields": ""
+            }
+          },
+          "pluginVersion": "11.6.0",
+          "targets": [
+            {
+              "columns": [
+                {
+                  "selector": "rank",
+                  "text": "Rank",
+                  "type": "number"
+                },
+                {
+                  "selector": "symbol",
+                  "text": "Symbol",
+                  "type": "string"
+                },
+                {
+                  "selector": "name",
+                  "text": "Token",
+                  "type": "string"
+                },
+                {
+                  "selector": "address",
+                  "text": "EVM Address",
+                  "type": "string"
+                },
+                {
+                  "selector": "transactions",
+                  "text": "Transactions (30d)",
+                  "type": "number"
+                },
+                {
+                  "selector": "holders",
+                  "text": "Unique holders (30d)",
+                  "type": "number"
+                },
+                {
+                  "selector": "score",
+                  "text": "Score",
+                  "type": "number"
+                }
+              ],
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_HGRAPH}"
+              },
+              "filters": [],
+              "format": "table",
+              "global_query_id": "",
+              "parser": "backend",
+              "refId": "A",
+              "root_selector": "data.top.({ \"rank\": rank, \"symbol\": token_symbol, \"name\": token_name, \"address\": token_evm_address, \"transactions\": transaction_count, \"holders\": unique_holders, \"score\": composite_score })",
+              "source": "url",
+              "type": "graphql",
+              "url": "https://mainnet.hedera.api.hgraph.io/v1/graphql",
+              "url_options": {
+                "body_content_type": "application/json",
+                "body_graphql_query": "query {\n  top: ecosystem_top_fungible_tokens_erc(args: { window_hours: 720, result_limit: 25 }) {\n    rank\n    token_symbol\n    token_name\n    token_evm_address\n    transaction_count\n    unique_holders\n    composite_score\n  }\n}\n",
+                "body_type": "graphql",
+                "data": "",
+                "method": "POST"
+              }
+            }
+          ]
+        },
+        {
           "description": "",
           "fieldConfig": {
             "defaults": {},
@@ -21891,7 +22022,7 @@
             "h": 3,
             "w": 24,
             "x": 0,
-            "y": 70021
+            "y": 70031
           },
           "id": 283,
           "options": {
@@ -21900,7 +22031,7 @@
               "showLineNumbers": false,
               "showMiniMap": false
             },
-            "content": "---\n\nView methodology for the `total_erc*_accounts` metrics in the [Hedera Stats docs →](https://docs.hgraph.com/category/evm--smart-contracts)",
+            "content": "---\n\nView methodology for the `total_erc*_accounts` metrics and the ERC-20 ranking in the [Hedera Stats docs →](https://docs.hgraph.com/category/evm--smart-contracts)",
             "mode": "markdown"
           },
           "pluginVersion": "11.6.0",
